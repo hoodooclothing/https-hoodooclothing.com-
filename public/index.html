@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOIR &mdash; Modern Essentials</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">NOIR</a>
+      <ul class="nav-links">
+        <li><a href="#products">Shop</a></li>
+        <li><a href="#about">About</a></li>
+        <li>
+          <button class="cart-btn" id="cart-btn">
+            Cart (<span id="cart-count">0</span>)
+          </button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-content">
+      <p class="hero-sub">New Collection</p>
+      <h1 class="hero-title">Less noise.<br/>More style.</h1>
+      <p class="hero-desc">Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
+      <a href="#products" class="btn btn-primary">Shop Now</a>
+    </div>
+  </header>
+
+  <!-- Products -->
+  <section id="products" class="products-section">
+    <h2 class="section-title">Essentials</h2>
+    <div class="product-grid" id="product-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="about-section">
+    <div class="about-inner">
+      <h2 class="section-title">Our Philosophy</h2>
+      <p>We believe great clothing starts with restraint. Every piece in the NOIR collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>
+      <p style="margin-top:24px; font-size:0.8rem; color:#666;">All garments are manufactured and fulfilled by Tapstitch using premium heavyweight blanks, DTG printing, and custom branding.</p>
+    </div>
+  </section>
+
+  <!-- Cart Drawer -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <p class="cart-empty">Your cart is empty.</p>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        Total: <span id="cart-total">$0</span>
+      </div>
+      <button class="btn btn-primary btn-full" id="checkout-btn">Checkout</button>
+    </div>
+  </aside>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 NOIR. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

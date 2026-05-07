@@ -3,16 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Confirmed &mdash; NOIR</title>
+  <title>Order Confirmed &mdash; HOODOO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <nav class="nav">
     <div class="nav-inner">
-      <a href="/" class="logo">NOIR</a>
+      <a href="/" class="logo">
+        <span class="hoodoo-mark">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+      </a>
     </div>
   </nav>
 
@@ -24,7 +35,14 @@
   </main>
 
   <footer class="footer">
-    <p>&copy; 2026 NOIR. All rights reserved.</p>
+    <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
   </footer>
+
+  <script src="analytics.js"></script>
+  <script>
+    if (window.HoodooAnalytics) {
+      HoodooAnalytics.track("purchase_complete");
+    }
+  </script>
 </body>
 </html>

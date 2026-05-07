@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- Shipping Banner (keeps consistent spacing) -->
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html" class="active">
+          <span class="nav-icon">&#9632;</span> Dashboard
+        </a>
+        <a href="/admin/orders.html">
+          <span class="nav-icon">&#9776;</span> Orders
+        </a>
+        <a href="/admin/analytics.html">
+          <span class="nav-icon">&#9670;</span> Analytics
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Dashboard</h1>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Metric Cards -->
+      <div class="metrics-grid" id="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Total Revenue</div>
+          <div class="metric-value" id="metric-revenue">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Orders</div>
+          <div class="metric-value" id="metric-orders">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Avg Order Value</div>
+          <div class="metric-value" id="metric-aov">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Items Sold</div>
+          <div class="metric-value" id="metric-items">0</div>
+        </div>
+      </div>
+
+      <!-- Revenue Chart with Range Toggle -->
+      <div class="chart-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+          <div class="chart-title" style="margin-bottom:0;">Revenue</div>
+          <div class="toggle-group" id="range-toggle">
+            <button class="toggle-btn active" data-range="7">7 Days</button>
+            <button class="toggle-btn" data-range="30">30 Days</button>
+          </div>
+        </div>
+        <div class="bar-chart" id="revenue-chart">
+          <p class="admin-loading">Loading chart...</p>
+        </div>
+      </div>
+
+      <!-- Top Products + Order Status widgets -->
+      <div class="dashboard-widgets">
+        <div class="chart-section">
+          <div class="chart-title">Top Products</div>
+          <div id="dash-top-products"><p class="admin-loading">Loading...</p></div>
+        </div>
+        <div class="chart-section">
+          <div class="chart-title">Order Status</div>
+          <div id="dash-order-status"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="section-header">
+        <h2>Recent Orders</h2>
+        <a href="/admin/orders.html" style="font-size:0.75rem; color:var(--text-muted);">View All &rarr;</a>
+      </div>
+      <table class="admin-table" id="recent-orders-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="recent-orders">
+          <tr><td colspan="5" class="admin-loading">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+  <script>
+    const metricRevenue = document.getElementById("metric-revenue");
+    const metricOrders = document.getElementById("metric-orders");
+    const metricAov = document.getElementById("metric-aov");
+    const metricItems = document.getElementById("metric-items");
+    const revenueChart = document.getElementById("revenue-chart");
+    const recentOrders = document.getElementById("recent-orders");
+    const refreshBtn = document.getElementById("refresh-btn");
+
+    var currentRange = 7;
+
+    // Range toggle
+    document.querySelectorAll("#range-toggle .toggle-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#range-toggle .toggle-btn").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        currentRange = parseInt(btn.dataset.range);
+        loadDashboard();
+      });
+    });
+
+    async function loadDashboard() {
+      // Fetch stats and orders in parallel
+      const [stats, orders] = await Promise.all([fetchStats(currentRange), fetchOrders()]);
+
+      // Render metrics
+      if (stats) {
+        metricRevenue.textContent = formatCurrency(stats.totalRevenue || 0);
+        metricOrders.textContent = stats.totalOrders || 0;
+        metricAov.textContent = formatCurrency(stats.avgOrderValue || 0);
+        metricItems.textContent = stats.itemsSold || 0;
+
+        // Render chart
+        renderBarChart(revenueChart, stats.dailyRevenue || []);
+
+        // Top products (top 5)
+        var prodEl = document.getElementById("dash-top-products");
+        if (stats.topProducts && stats.topProducts.length) {
+          var top5 = stats.topProducts.slice(0, 5);
+          prodEl.innerHTML = '<table class="admin-table"><thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Revenue</th></tr></thead><tbody>' +
+            top5.map(function (p, i) {
+              return '<tr><td>' + (i + 1) + '</td><td>' + p.name + '</td><td>' + p.quantity + '</td><td>' + formatCurrency(p.revenue) + '</td></tr>';
+            }).join("") + '</tbody></table>';
+        } else {
+          prodEl.innerHTML = '<p class="admin-empty">No product data yet.</p>';
+        }
+
+        // Order status donut
+        var statusEl = document.getElementById("dash-order-status");
+        if (stats.statusDistribution && Object.keys(stats.statusDistribution).length) {
+          renderDonut(statusEl, stats.statusDistribution, stats.totalOrders + " orders");
+        } else {
+          statusEl.innerHTML = '<p class="admin-empty">No order data.</p>';
+        }
+      } else {
+        metricRevenue.textContent = "$0.00";
+        metricOrders.textContent = "0";
+        metricAov.textContent = "$0.00";
+        metricItems.textContent = "0";
+        revenueChart.innerHTML = '<p class="admin-empty">Could not load chart data</p>';
+      }
+
+      // Render recent orders (top 5)
+      if (orders && orders.length > 0) {
+        const recent = orders.slice(0, 5);
+        recentOrders.innerHTML = recent
+          .map(
+            (o) => `
+          <tr>
+            <td style="font-family:monospace; font-size:0.75rem;">${o.id.slice(0, 20)}...</td>
+            <td>${o.customer?.name || o.customer?.email || "N/A"}</td>
+            <td><span class="badge ${STATUS_BADGES[o.status] || "badge-pending"}">${STATUS_LABELS[o.status] || o.status}</span></td>
+            <td>${formatCurrency(o.amountTotal || 0)}</td>
+            <td style="color:var(--text-muted); font-size:0.8rem;">${formatDate(o.createdAt)}</td>
+          </tr>
+        `
+          )
+          .join("");
+      } else {
+        recentOrders.innerHTML =
+          '<tr><td colspan="5" class="admin-empty">No orders yet. Orders appear after a successful Stripe payment.</td></tr>';
+      }
+    }
+
+    refreshBtn.addEventListener("click", loadDashboard);
+    loadDashboard();
+  </script>
+</body>
+</html>

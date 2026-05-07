@@ -1,6 +1,4 @@
-// ── Tapstitch Product Catalog ──
-// Products mapped to actual Tapstitch offerings with realistic cost + margin pricing.
-// tapstitchProductId values are placeholders — replace with your real Tapstitch product IDs.
+// ── Product Catalog (shared with script.js) ──
 const products = [
   {
     id: 1,
@@ -97,7 +95,7 @@ function saveCart() {
 }
 
 // ── DOM Elements ──
-const productGrid = document.getElementById("product-grid");
+const pdpContainer = document.getElementById("pdp-container");
 const cartBtn = document.getElementById("cart-btn");
 const cartCount = document.getElementById("cart-count");
 const cartDrawer = document.getElementById("cart-drawer");
@@ -107,67 +105,162 @@ const cartItemsEl = document.getElementById("cart-items");
 const cartFooter = document.getElementById("cart-footer");
 const cartTotalEl = document.getElementById("cart-total");
 const checkoutBtn = document.getElementById("checkout-btn");
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
+const lightboxClose = document.getElementById("lightbox-close");
 
-// ── Render Products ──
-function renderProducts() {
-  productGrid.innerHTML = products
-    .map(
-      (p) => `
-    <a href="/product.html?id=${p.id}" class="product-card-link">
-      <div class="product-card" data-id="${p.id}">
-        <div class="product-image">
-          <img src="${p.image}" alt="${p.name}" loading="lazy" class="product-img-front" />
-          ${p.imageBack ? `<img src="${p.imageBack}" alt="${p.name} back" loading="lazy" class="product-img-back" />` : ""}
+// ── Load Product Detail ──
+function getProductId() {
+  const params = new URLSearchParams(window.location.search);
+  return Number(params.get("id"));
+}
+
+function renderProductDetail() {
+  const id = getProductId();
+  const product = products.find((p) => p.id === id);
+
+  if (!product) {
+    pdpContainer.innerHTML = `
+      <div class="pdp-not-found">
+        <h1>Product Not Found</h1>
+        <p>Sorry, we couldn't find that product.</p>
+        <a href="/" class="btn btn-primary">Back to Shop</a>
+      </div>
+    `;
+    return;
+  }
+
+  document.title = `${product.name} — HOODOO`;
+
+  const images = [product.image];
+  if (product.imageBack) images.push(product.imageBack);
+
+  pdpContainer.innerHTML = `
+    <div class="pdp-breadcrumb">
+      <a href="/">Home</a> / <a href="/#products">Shop</a> / <span>${product.name}</span>
+    </div>
+    <div class="pdp-layout">
+      <div class="pdp-images">
+        <div class="pdp-main-image" id="pdp-main-image">
+          <img src="${product.image}" alt="${product.name}" class="pdp-img clickable-img" data-src="${product.image}" />
         </div>
-        <div class="product-info">
-          <h3 class="product-name">${p.name}</h3>
-          <p class="product-desc">${p.description}</p>
-          <div class="product-variants">
-            <div class="variant-group">
-              <label class="variant-label">Size</label>
-              <select class="variant-select size-select" data-id="${p.id}">
-                ${p.sizes.map((s) => `<option value="${s}">${s}</option>`).join("")}
-              </select>
+        ${images.length > 1 ? `
+          <div class="pdp-thumbs">
+            ${images.map((img, i) => `
+              <div class="pdp-thumb ${i === 0 ? "active" : ""}" data-src="${img}">
+                <img src="${img}" alt="${product.name}" />
+              </div>
+            `).join("")}
+          </div>
+        ` : ""}
+      </div>
+      <div class="pdp-details">
+        <h1 class="pdp-title">${product.name}</h1>
+        <p class="pdp-price">$${(product.price / 100).toFixed(2)}</p>
+        <p class="pdp-description">${product.description}</p>
+        <span class="free-shipping-badge">Free Shipping</span>
+
+        <div class="pdp-variants">
+          <div class="pdp-variant-group">
+            <label class="variant-label">Size</label>
+            <div class="pdp-size-options" id="pdp-sizes">
+              ${product.sizes.map((s, i) => `
+                <button class="pdp-size-btn ${i === 0 ? "active" : ""}" data-size="${s}">${s}</button>
+              `).join("")}
             </div>
-            <div class="variant-group">
+          </div>
+          ${product.colors.length > 1 ? `
+            <div class="pdp-variant-group">
               <label class="variant-label">Color</label>
-              <select class="variant-select color-select" data-id="${p.id}">
-                ${p.colors.map((c) => `<option value="${c}">${c}</option>`).join("")}
-              </select>
+              <div class="pdp-color-options" id="pdp-colors">
+                ${product.colors.map((c, i) => `
+                  <button class="pdp-color-btn ${i === 0 ? "active" : ""}" data-color="${c}">${c}</button>
+                `).join("")}
+              </div>
             </div>
-          </div>
-          <div class="product-bottom">
-            <span class="product-price">$${(p.price / 100).toFixed(2)}</span>
-            <span class="free-shipping-badge">Free Shipping</span>
-            <button class="product-buy" data-id="${p.id}">Add to Cart</button>
-          </div>
+          ` : `<input type="hidden" id="pdp-single-color" value="${product.colors[0]}" />`}
+        </div>
+
+        <button class="btn btn-primary btn-full pdp-add-to-cart" id="pdp-add-to-cart">Add to Cart</button>
+
+        <div class="pdp-meta">
+          <div class="pdp-meta-row"><span>Type</span><span>${product.productType}</span></div>
+          <div class="pdp-meta-row"><span>Print Method</span><span>${product.printMethod.toUpperCase()}</span></div>
+          <div class="pdp-meta-row"><span>Product ID</span><span>${product.tapstitchProductId}</span></div>
         </div>
       </div>
-    </a>
-  `
-    )
-    .join("");
+    </div>
+  `;
 
-  // Prevent link navigation when interacting with selects and add-to-cart button
-  productGrid.querySelectorAll(".variant-select").forEach((sel) => {
-    sel.addEventListener("click", (e) => e.preventDefault());
-    sel.addEventListener("mousedown", (e) => e.stopPropagation());
+  // Thumbnail clicks
+  const thumbs = pdpContainer.querySelectorAll(".pdp-thumb");
+  const mainImage = pdpContainer.querySelector(".pdp-img");
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      thumbs.forEach((t) => t.classList.remove("active"));
+      thumb.classList.add("active");
+      mainImage.src = thumb.dataset.src;
+      mainImage.dataset.src = thumb.dataset.src;
+    });
   });
 
-  productGrid.querySelectorAll(".product-buy").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const id = Number(btn.dataset.id);
-      const card = btn.closest(".product-card");
-      const size = card.querySelector(".size-select").value;
-      const color = card.querySelector(".color-select").value;
-      addToCart(id, size, color);
+  // Size selector
+  const sizeBtns = pdpContainer.querySelectorAll(".pdp-size-btn");
+  sizeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      sizeBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
     });
+  });
+
+  // Color selector
+  const colorBtns = pdpContainer.querySelectorAll(".pdp-color-btn");
+  colorBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      colorBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  // Add to cart
+  document.getElementById("pdp-add-to-cart").addEventListener("click", () => {
+    const activeSize = pdpContainer.querySelector(".pdp-size-btn.active");
+    const activeColor = pdpContainer.querySelector(".pdp-color-btn.active");
+    const singleColor = pdpContainer.querySelector("#pdp-single-color");
+    const size = activeSize ? activeSize.dataset.size : product.sizes[0];
+    const color = activeColor ? activeColor.dataset.color : (singleColor ? singleColor.value : product.colors[0]);
+    addToCart(product.id, size, color);
+  });
+
+  // Lightbox on image click
+  mainImage.addEventListener("click", () => {
+    openLightbox(mainImage.src);
   });
 }
 
-// ── Cart Functions ──
+// ── Lightbox ──
+function openLightbox(src) {
+  lightboxImg.src = src;
+  lightbox.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  lightbox.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+lightboxClose.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && lightbox.classList.contains("open")) {
+    closeLightbox();
+  }
+});
+
+// ── Cart Functions (shared logic) ──
 function cartKey(productId, size, color) {
   return `${productId}-${size}-${color}`;
 }
@@ -304,5 +397,10 @@ checkoutBtn.addEventListener("click", async () => {
 });
 
 // ── Init ──
-renderProducts();
+renderProductDetail();
 updateCart();
+
+// Track product view
+if (window.HoodooAnalytics && getProductId()) {
+  HoodooAnalytics.track("product_view");
+}

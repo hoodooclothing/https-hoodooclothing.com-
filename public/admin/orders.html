@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- Shipping Banner -->
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html">
+          <span class="nav-icon">&#9632;</span> Dashboard
+        </a>
+        <a href="/admin/orders.html" class="active">
+          <span class="nav-icon">&#9776;</span> Orders
+        </a>
+        <a href="/admin/analytics.html">
+          <span class="nav-icon">&#9670;</span> Analytics
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Orders</h1>
+        <div class="header-actions">
+          <a href="https://dashboard.stripe.com/payments" target="_blank" class="btn btn-secondary btn-sm">Stripe Dashboard</a>
+          <button class="btn btn-secondary btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="orders-toolbar">
+        <input type="text" class="search-input" id="search-input" placeholder="Search by customer name or email..." />
+        <select class="filter-select" id="status-filter">
+          <option value="all">All Statuses</option>
+          <option value="pending_fulfillment">Pending</option>
+          <option value="submitted_to_tapstitch">Submitted</option>
+          <option value="in_production">In Production</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+      </div>
+
+      <!-- Orders Table -->
+      <table class="admin-table" id="orders-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="orders-body">
+          <tr><td colspan="7" class="admin-loading">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+  <script>
+    const ordersBody = document.getElementById("orders-body");
+    const searchInput = document.getElementById("search-input");
+    const statusFilter = document.getElementById("status-filter");
+    const refreshBtn = document.getElementById("refresh-btn");
+
+    let allOrders = [];
+
+    async function loadOrders() {
+      const search = searchInput.value.trim();
+      const status = statusFilter.value;
+
+      allOrders = await fetchOrders(search, status);
+      renderOrders();
+    }
+
+    function renderOrders() {
+      if (!allOrders || allOrders.length === 0) {
+        ordersBody.innerHTML = '<tr><td colspan="7" class="admin-empty">No orders found.</td></tr>';
+        return;
+      }
+
+      ordersBody.innerHTML = allOrders
+        .map((order, idx) => {
+          const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
+          const shipping = order.shipping;
+          const addr = shipping?.address;
+          const addrStr = addr
+            ? [addr.line1, addr.line2, `${addr.city}, ${addr.state} ${addr.postal_code}`, addr.country]
+                .filter(Boolean)
+                .join("<br>")
+            : "Not provided";
+
+          const itemRows = order.items
+            .map(
+              (item) =>
+                `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${formatCurrency(item.total)}</td></tr>`
+            )
+            .join("");
+
+          const tapstitchInfo = order.tapstitchMeta
+            ? order.tapstitchMeta
+                .map(
+                  (m) =>
+                    `<p>${m.name} &mdash; ${m.color || "N/A"} / ${m.size || "N/A"} &mdash; Qty: ${m.quantity} &mdash; Print: ${m.printMethod || "dtg"}<br><small>Tapstitch ID: ${m.tapstitchProductId || "N/A"} &bull; Type: ${m.productType || "N/A"}</small></p>`
+                )
+                .join("")
+            : "<p>No Tapstitch metadata</p>";
+
+          return `
+            <tr class="toggle-row" data-idx="${idx}">
+              <td><span class="toggle-arrow" id="arrow-${idx}">&#9654;</span></td>
+              <td style="font-family:monospace; font-size:0.75rem;">${order.id.slice(0, 24)}...</td>
+              <td>${order.customer?.name || order.customer?.email || "N/A"}</td>
+              <td><span class="badge ${STATUS_BADGES[order.status] || "badge-pending"}">${STATUS_LABELS[order.status] || order.status}</span></td>
+              <td>${itemCount}</td>
+              <td>${formatCurrency(order.amountTotal || 0)}</td>
+              <td style="color:var(--text-muted); font-size:0.8rem;">${formatDate(order.createdAt)}</td>
+            </tr>
+            <tr class="order-expand-row">
+              <td colspan="7">
+                <div class="order-expand-content" id="expand-${idx}">
+                  <div class="order-expand-grid">
+                    <div class="order-expand-section">
+                      <h4>Customer</h4>
+                      <p>
+                        ${order.customer?.name || "N/A"}<br>
+                        ${order.customer?.email || "N/A"}<br>
+                        ${order.customer?.phone || ""}
+                      </p>
+                    </div>
+                    <div class="order-expand-section">
+                      <h4>Shipping</h4>
+                      <p>${shipping?.name || ""}<br>${addrStr}</p>
+                    </div>
+                    <div class="order-expand-section">
+                      <h4>Actions</h4>
+                      <p><a href="https://dashboard.stripe.com/payments" target="_blank" class="btn btn-secondary btn-sm">View in Stripe</a></p>
+                    </div>
+                  </div>
+
+                  <table class="order-items-table" style="margin-top:16px;">
+                    <thead>
+                      <tr><th>Item</th><th>Qty</th><th>Total</th></tr>
+                    </thead>
+                    <tbody>${itemRows}</tbody>
+                  </table>
+
+                  <div class="tapstitch-meta" style="margin-top:16px;">
+                    <h4>Tapstitch Fulfillment Details</h4>
+                    ${tapstitchInfo}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      // Attach toggle handlers
+      document.querySelectorAll(".toggle-row").forEach((row) => {
+        row.addEventListener("click", () => {
+          const idx = row.dataset.idx;
+          const content = document.getElementById("expand-" + idx);
+          const arrow = document.getElementById("arrow-" + idx);
+          content.classList.toggle("open");
+          arrow.classList.toggle("open");
+        });
+      });
+    }
+
+    // Debounced search
+    let searchTimeout;
+    searchInput.addEventListener("input", () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadOrders, 300);
+    });
+
+    statusFilter.addEventListener("change", loadOrders);
+    refreshBtn.addEventListener("click", loadOrders);
+
+    loadOrders();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HOODOO &mdash; Modern Essentials</title>
+  <title>Product &mdash; HOODOO</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -30,8 +30,8 @@
         </span>
       </a>
       <ul class="nav-links">
-        <li><a href="#products">Shop</a></li>
-        <li><a href="#about">About</a></li>
+        <li><a href="/#products">Shop</a></li>
+        <li><a href="/#about">About</a></li>
         <li>
           <button class="cart-btn" id="cart-btn">
             Cart (<span id="cart-count">0</span>)
@@ -41,32 +41,16 @@
     </div>
   </nav>
 
-  <!-- Hero -->
-  <header class="hero">
-    <div class="hero-content">
-      <p class="hero-sub">New Collection</p>
-      <h1 class="hero-title">Less noise.<br/>More style.</h1>
-      <p class="hero-desc">Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
-      <a href="#products" class="btn btn-primary">Shop Now</a>
-    </div>
-  </header>
+  <!-- Product Detail -->
+  <main class="pdp-container" id="pdp-container">
+    <div class="pdp-loading">Loading product...</div>
+  </main>
 
-  <!-- Products -->
-  <section id="products" class="products-section">
-    <h2 class="section-title">Essentials</h2>
-    <div class="product-grid" id="product-grid">
-      <!-- Rendered by JS -->
-    </div>
-  </section>
-
-  <!-- About -->
-  <section id="about" class="about-section">
-    <div class="about-inner">
-      <h2 class="section-title">Our Philosophy</h2>
-      <p>We believe great clothing starts with restraint. Every piece in the Hoodoo collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>
-      <p style="margin-top:24px; font-size:0.8rem; color:#666;">All garments are manufactured and fulfilled by Tapstitch using premium heavyweight blanks, DTG printing, and custom branding.</p>
-    </div>
-  </section>
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close">&times;</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="Product image" />
+  </div>
 
   <!-- Cart Drawer -->
   <div class="cart-overlay" id="cart-overlay"></div>
@@ -92,6 +76,6 @@
   </footer>
 
   <script src="analytics.js"></script>
-  <script src="script.js"></script>
+  <script src="product.js"></script>
 </body>
 </html>

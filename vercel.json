@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm install",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
+    { "source": "/admin/orders", "destination": "/api/admin/orders" },
+    { "source": "/admin/stats", "destination": "/api/admin/stats" },
+    { "source": "/admin/analytics", "destination": "/admin/analytics.html" }
+  ]
+}

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- Shipping Banner -->
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html">
+          <span class="nav-icon">&#9632;</span> Dashboard
+        </a>
+        <a href="/admin/orders.html">
+          <span class="nav-icon">&#9776;</span> Orders
+        </a>
+        <a href="/admin/analytics.html" class="active">
+          <span class="nav-icon">&#9670;</span> Analytics
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Analytics</h1>
+        <div class="header-actions">
+          <div class="toggle-group" id="range-toggle">
+            <button class="toggle-btn active" data-range="7">7 Days</button>
+            <button class="toggle-btn" data-range="30">30 Days</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="refresh-btn" style="margin-left:8px;">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Conversion Funnel (localStorage) -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Conversion Funnel</div>
+          <div id="funnel-chart"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Traffic Sources + Device Breakdown -->
+      <div class="dashboard-widgets">
+        <div class="chart-section">
+          <div class="chart-title">Traffic Sources</div>
+          <div id="traffic-chart"><p class="admin-loading">Loading...</p></div>
+        </div>
+        <div class="chart-section">
+          <div class="chart-title">Device Breakdown</div>
+          <div id="device-chart"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Top Pages -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Top Pages</div>
+          <div id="top-pages"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Top Products (Stripe) -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Top Products</div>
+          <div id="top-products-table"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Sales by Category + Order Status -->
+      <div class="dashboard-widgets">
+        <div class="chart-section">
+          <div class="chart-title">Sales by Category</div>
+          <div id="sales-by-type"><p class="admin-loading">Loading...</p></div>
+        </div>
+        <div class="chart-section">
+          <div class="chart-title">Order Status</div>
+          <div id="order-status"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Revenue by Day of Week -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Revenue by Day of Week</div>
+          <div id="revenue-dow"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Customer Insights -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Customer Insights</div>
+          <div id="customer-insights"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Top Customers -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Top Customers</div>
+          <div id="top-customers"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+      <!-- Geographic Distribution -->
+      <div class="analytics-section">
+        <div class="chart-section">
+          <div class="chart-title">Geographic Distribution</div>
+          <div id="geo-dist"><p class="admin-loading">Loading...</p></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+  <script>
+    var currentRange = 7;
+
+    // ── Range toggle ──
+    document.querySelectorAll("#range-toggle .toggle-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#range-toggle .toggle-btn").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        currentRange = parseInt(btn.dataset.range);
+        loadAnalytics();
+      });
+    });
+
+    document.getElementById("refresh-btn").addEventListener("click", function () {
+      loadAnalytics();
+    });
+
+    async function loadAnalytics() {
+      // ── Local analytics ──
+      var localData = loadLocalAnalytics();
+      var agg = aggregateLocalAnalytics(localData, currentRange);
+
+      // Funnel
+      var funnelEl = document.getElementById("funnel-chart");
+      if (agg) {
+        renderFunnel(funnelEl, agg);
+      } else {
+        funnelEl.innerHTML = '<p class="admin-empty">No local analytics data yet. Browse the storefront to generate data.</p>';
+      }
+
+      // Traffic sources
+      var trafficEl = document.getElementById("traffic-chart");
+      if (localData && localData.referrers && Object.keys(localData.referrers).length) {
+        renderHorizontalBars(trafficEl, localData.referrers);
+      } else {
+        trafficEl.innerHTML = '<p class="admin-empty">No traffic data yet.</p>';
+      }
+
+      // Device breakdown
+      var deviceEl = document.getElementById("device-chart");
+      if (localData && localData.devices && Object.keys(localData.devices).length) {
+        renderHorizontalBars(deviceEl, localData.devices);
+      } else {
+        deviceEl.innerHTML = '<p class="admin-empty">No device data yet.</p>';
+      }
+
+      // Top pages
+      var pagesEl = document.getElementById("top-pages");
+      if (localData && localData.pageViews && Object.keys(localData.pageViews).length) {
+        var sorted = Object.entries(localData.pageViews)
+          .sort(function (a, b) { return b[1] - a[1]; })
+          .slice(0, 15);
+        pagesEl.innerHTML = '<ul class="top-pages-list">' + sorted.map(function (e) {
+          return '<li><span class="page-path">' + e[0] + '</span><span class="page-count">' + e[1] + ' views</span></li>';
+        }).join("") + '</ul>';
+      } else {
+        pagesEl.innerHTML = '<p class="admin-empty">No page view data yet.</p>';
+      }
+
+      // ── Stripe analytics ──
+      var stats = await fetchStats(currentRange);
+      if (!stats) {
+        document.getElementById("top-products-table").innerHTML = '<p class="admin-empty">Could not load data.</p>';
+        return;
+      }
+
+      // Top products table
+      var prodEl = document.getElementById("top-products-table");
+      if (stats.topProducts && stats.topProducts.length) {
+        prodEl.innerHTML = '<table class="admin-table"><thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Revenue</th></tr></thead><tbody>' +
+          stats.topProducts.map(function (p, i) {
+            return '<tr><td>' + (i + 1) + '</td><td>' + p.name + '</td><td>' + p.quantity + '</td><td>' + formatCurrency(p.revenue) + '</td></tr>';
+          }).join("") + '</tbody></table>';
+      } else {
+        prodEl.innerHTML = '<p class="admin-empty">No product data available.</p>';
+      }
+
+      // Sales by category
+      var typeEl = document.getElementById("sales-by-type");
+      if (stats.salesByType && Object.keys(stats.salesByType).length) {
+        renderHorizontalBars(typeEl, stats.salesByType);
+      } else {
+        typeEl.innerHTML = '<p class="admin-empty">No category data available.</p>';
+      }
+
+      // Order status donut
+      var statusEl = document.getElementById("order-status");
+      if (stats.statusDistribution && Object.keys(stats.statusDistribution).length) {
+        renderDonut(statusEl, stats.statusDistribution, stats.totalOrders + " orders");
+      } else {
+        statusEl.innerHTML = '<p class="admin-empty">No order data.</p>';
+      }
+
+      // Revenue by day of week
+      var dowEl = document.getElementById("revenue-dow");
+      if (stats.revenueByDayOfWeek) {
+        renderVBarChart(dowEl, stats.revenueByDayOfWeek);
+      } else {
+        dowEl.innerHTML = '<p class="admin-empty">No revenue data.</p>';
+      }
+
+      // Customer insights
+      var custEl = document.getElementById("customer-insights");
+      if (stats.customers) {
+        custEl.innerHTML = '<div class="stat-row">' +
+          '<div class="stat-card"><div class="stat-card-value">' + stats.customers.total + '</div><div class="stat-card-label">Total Customers</div></div>' +
+          '<div class="stat-card"><div class="stat-card-value">' + stats.customers.repeat + '</div><div class="stat-card-label">Repeat Customers</div></div>' +
+          '<div class="stat-card"><div class="stat-card-value">' + stats.customers.new + '</div><div class="stat-card-label">New Customers</div></div>' +
+        '</div>';
+      } else {
+        custEl.innerHTML = '<p class="admin-empty">No customer data.</p>';
+      }
+
+      // Top customers table
+      var topCustEl = document.getElementById("top-customers");
+      if (stats.customers && stats.customers.topCustomers && stats.customers.topCustomers.length) {
+        topCustEl.innerHTML = '<table class="admin-table"><thead><tr><th>#</th><th>Customer</th><th>Orders</th><th>Total Spent</th></tr></thead><tbody>' +
+          stats.customers.topCustomers.map(function (c, i) {
+            return '<tr><td>' + (i + 1) + '</td><td>' + c.name + '</td><td>' + c.orders + '</td><td>' + formatCurrency(c.spent) + '</td></tr>';
+          }).join("") + '</tbody></table>';
+      } else {
+        topCustEl.innerHTML = '<p class="admin-empty">No customer data available.</p>';
+      }
+
+      // Geographic distribution
+      var geoEl = document.getElementById("geo-dist");
+      if (stats.customers && stats.customers.geoDistribution && Object.keys(stats.customers.geoDistribution).length) {
+        var geoSorted = Object.entries(stats.customers.geoDistribution)
+          .sort(function (a, b) { return b[1] - a[1]; });
+        geoEl.innerHTML = '<table class="admin-table"><thead><tr><th>Region</th><th>Orders</th></tr></thead><tbody>' +
+          geoSorted.map(function (g) {
+            return '<tr><td>' + g[0] + '</td><td>' + g[1] + '</td></tr>';
+          }).join("") + '</tbody></table>';
+      } else {
+        geoEl.innerHTML = '<p class="admin-empty">No geographic data available.</p>';
+      }
+    }
+
+    loadAnalytics();
+  </script>
+</body>
+</html>

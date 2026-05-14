@@ -240,7 +240,7 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-app.put("/api/admin/products-update", async (req, res) => {
+app.post("/api/admin/products-update", async (req, res) => {
   try {
     const updates = req.body;
     if (!updates || !updates.id) {

@@ -1,7 +1,7 @@
 const { getProducts, saveProducts } = require("../../lib/products-store");
 
 module.exports = async function handler(req, res) {
-  if (req.method !== "PUT") {
+  if (req.method !== "POST" && req.method !== "PUT") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     }
 
     const products = await getProducts();
-    const index = products.findIndex((p) => p.id === updates.id);
+    const index = products.findIndex((p) => p.id === Number(updates.id));
 
     if (index === -1) {
       return res.status(404).json({ error: "Product not found" });

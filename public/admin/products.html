@@ -605,7 +605,7 @@
         if (editMode) {
           data.id = Number(document.getElementById("form-id").value);
           url = "/api/admin/products-update";
-          method = "PUT";
+          method = "POST";
         } else {
           url = "/api/admin/products-create";
           method = "POST";

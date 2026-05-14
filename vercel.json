@@ -8,6 +8,10 @@
     { "source": "/admin/stats", "destination": "/api/admin/stats" },
     { "source": "/admin/send-code", "destination": "/api/admin/send-code" },
     { "source": "/admin/verify-code", "destination": "/api/admin/verify-code" },
-    { "source": "/admin/analytics", "destination": "/admin/analytics.html" }
+    { "source": "/admin/analytics", "destination": "/admin/analytics.html" },
+    { "source": "/api/products", "destination": "/api/products" },
+    { "source": "/api/admin/products-update", "destination": "/api/admin/products-update" },
+    { "source": "/api/admin/products-create", "destination": "/api/admin/products-create" },
+    { "source": "/api/admin/products-delete", "destination": "/api/admin/products-delete" }
   ]
 }

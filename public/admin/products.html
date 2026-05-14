@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* ── Product Admin Styles ── */
+    .product-thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .btn-icon:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .btn-icon.btn-danger:hover {
+      color: #e55;
+      border-color: #e55;
+    }
+
+    .qty-badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .qty-unlimited {
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+
+    .qty-low {
+      background: #3a2a1a;
+      color: #f0a050;
+    }
+
+    .qty-ok {
+      background: #1a3a2a;
+      color: #50c080;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 560px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--text-muted);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-group small {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .btn-primary-admin {
+      padding: 10px 24px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--text);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary-admin:hover {
+      opacity: 0.85;
+    }
+
+    .btn-primary-admin:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      padding: 10px 24px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .btn-cancel:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    /* ── Delete Confirm ── */
+    .delete-confirm-text {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .delete-confirm-name {
+      font-weight: 500;
+      color: #e55;
+    }
+
+    .btn-danger-fill {
+      padding: 10px 24px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: #fff;
+      background: #c44;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-danger-fill:hover {
+      opacity: 0.85;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      color: var(--bg);
+      background: var(--text);
+      border-radius: var(--radius);
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background: #c44;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Shipping Banner -->
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html">
+          <span class="nav-icon">&#9632;</span> Dashboard
+        </a>
+        <a href="/admin/orders.html">
+          <span class="nav-icon">&#9776;</span> Orders
+        </a>
+        <a href="/admin/products.html" class="active">
+          <span class="nav-icon">&#9830;</span> Products
+        </a>
+        <a href="/admin/analytics.html">
+          <span class="nav-icon">&#9670;</span> Analytics
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Products</h1>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="add-product-btn">+ Add Product</button>
+          <button class="btn btn-secondary btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <table class="admin-table" id="products-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-body">
+          <tr><td colspan="6" class="admin-loading">Loading products...</td></tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <!-- Edit / Add Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">Edit Product</div>
+      <form id="product-form">
+        <input type="hidden" id="form-id" />
+
+        <div class="form-group">
+          <label for="form-name">Product Name</label>
+          <input type="text" id="form-name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="form-description">Description</label>
+          <textarea id="form-description"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-price">Price (cents)</label>
+            <input type="number" id="form-price" min="0" required />
+            <small>e.g. 4500 = $45.00</small>
+          </div>
+          <div class="form-group">
+            <label for="form-quantity">Quantity</label>
+            <input type="number" id="form-quantity" min="-1" />
+            <small>-1 = unlimited</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-type">Product Type</label>
+            <select id="form-type">
+              <option value="tee">Tee</option>
+              <option value="hoodie">Hoodie</option>
+              <option value="hat">Hat</option>
+              <option value="pants">Pants</option>
+              <option value="accessory">Accessory</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-print">Print Method</label>
+            <select id="form-print">
+              <option value="dtg">DTG</option>
+              <option value="screen">Screen Print</option>
+              <option value="embroidery">Embroidery</option>
+              <option value="sublimation">Sublimation</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="form-tapstitch">Tapstitch Product ID</label>
+          <input type="text" id="form-tapstitch" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-sizes">Sizes</label>
+            <input type="text" id="form-sizes" placeholder="S, M, L, XL, XXL" />
+            <small>Comma-separated</small>
+          </div>
+          <div class="form-group">
+            <label for="form-colors">Colors</label>
+            <input type="text" id="form-colors" placeholder="Black, White" />
+            <small>Comma-separated</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-image">Front Image Filename</label>
+            <input type="text" id="form-image" placeholder="product-front.webp" />
+          </div>
+          <div class="form-group">
+            <label for="form-image-back">Back Image Filename</label>
+            <input type="text" id="form-image-back" placeholder="product-back.png" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="modal-cancel">Cancel</button>
+          <button type="submit" class="btn-primary-admin" id="modal-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal" style="max-width: 400px;">
+      <div class="modal-title">Delete Product</div>
+      <p class="delete-confirm-text">Are you sure you want to delete <span class="delete-confirm-name" id="delete-name"></span>?</p>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">This action cannot be undone.</p>
+      <input type="hidden" id="delete-id" />
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="delete-cancel">Cancel</button>
+        <button type="button" class="btn-danger-fill" id="delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+  <script>
+    const productsBody = document.getElementById("products-body");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const addProductBtn = document.getElementById("add-product-btn");
+    const productModal = document.getElementById("product-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const productForm = document.getElementById("product-form");
+    const modalCancel = document.getElementById("modal-cancel");
+    const modalSave = document.getElementById("modal-save");
+    const deleteModal = document.getElementById("delete-modal");
+    const deleteName = document.getElementById("delete-name");
+    const deleteIdInput = document.getElementById("delete-id");
+    const deleteCancel = document.getElementById("delete-cancel");
+    const deleteConfirmBtn = document.getElementById("delete-confirm");
+    const toast = document.getElementById("toast");
+
+    let allProducts = [];
+    let editMode = false; // true = editing, false = creating
+
+    // ── Toast ──
+    function showToast(message, isError) {
+      toast.textContent = message;
+      toast.className = "toast" + (isError ? " error" : "");
+      toast.classList.add("show");
+      setTimeout(function () { toast.classList.remove("show"); }, 3000);
+    }
+
+    // ── Load Products ──
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products");
+        allProducts = await res.json();
+        renderProducts();
+      } catch (err) {
+        console.error("Failed to load products:", err);
+        productsBody.innerHTML = '<tr><td colspan="6" class="admin-empty">Failed to load products.</td></tr>';
+      }
+    }
+
+    // ── Render Products Table ──
+    function renderProducts() {
+      if (!allProducts || allProducts.length === 0) {
+        productsBody.innerHTML = '<tr><td colspan="6" class="admin-empty">No products yet. Click "+ Add Product" to create one.</td></tr>';
+        return;
+      }
+
+      productsBody.innerHTML = allProducts.map(function (p) {
+        var qtyLabel;
+        if (p.quantity === -1) {
+          qtyLabel = '<span class="qty-badge qty-unlimited">Unlimited</span>';
+        } else if (p.quantity <= 10) {
+          qtyLabel = '<span class="qty-badge qty-low">' + p.quantity + '</span>';
+        } else {
+          qtyLabel = '<span class="qty-badge qty-ok">' + p.quantity + '</span>';
+        }
+
+        var imgSrc = p.image ? '/' + p.image : '';
+        var imgTag = imgSrc
+          ? '<img src="' + imgSrc + '" alt="' + p.name + '" class="product-thumb" />'
+          : '<div class="product-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.6rem;">No img</div>';
+
+        return '<tr>' +
+          '<td>' + imgTag + '</td>' +
+          '<td>' + p.name + '</td>' +
+          '<td style="text-transform:capitalize;">' + (p.productType || '') + '</td>' +
+          '<td>' + formatCurrency(p.price) + '</td>' +
+          '<td>' + qtyLabel + '</td>' +
+          '<td><div class="product-actions">' +
+            '<button class="btn-icon" onclick="openEdit(' + p.id + ')">Edit</button>' +
+            '<button class="btn-icon btn-danger" onclick="openDelete(' + p.id + ')">Delete</button>' +
+          '</div></td>' +
+        '</tr>';
+      }).join("");
+    }
+
+    // ── Modal helpers ──
+    function openModal() {
+      productModal.classList.add("open");
+    }
+
+    function closeModal() {
+      productModal.classList.remove("open");
+      productForm.reset();
+      document.getElementById("form-id").value = "";
+    }
+
+    function openDeleteModal() {
+      deleteModal.classList.add("open");
+    }
+
+    function closeDeleteModal() {
+      deleteModal.classList.remove("open");
+    }
+
+    // ── Open Edit ──
+    window.openEdit = function (id) {
+      var p = allProducts.find(function (prod) { return prod.id === id; });
+      if (!p) return;
+
+      editMode = true;
+      modalTitle.textContent = "Edit Product";
+      modalSave.textContent = "Save Changes";
+
+      document.getElementById("form-id").value = p.id;
+      document.getElementById("form-name").value = p.name || "";
+      document.getElementById("form-description").value = p.description || "";
+      document.getElementById("form-price").value = p.price || 0;
+      document.getElementById("form-quantity").value = p.quantity !== undefined ? p.quantity : -1;
+      document.getElementById("form-type").value = p.productType || "tee";
+      document.getElementById("form-print").value = p.printMethod || "dtg";
+      document.getElementById("form-tapstitch").value = p.tapstitchProductId || "";
+      document.getElementById("form-sizes").value = (p.sizes || []).join(", ");
+      document.getElementById("form-colors").value = (p.colors || []).join(", ");
+      document.getElementById("form-image").value = p.image || "";
+      document.getElementById("form-image-back").value = p.imageBack || "";
+
+      openModal();
+    };
+
+    // ── Open Add ──
+    addProductBtn.addEventListener("click", function () {
+      editMode = false;
+      modalTitle.textContent = "Add Product";
+      modalSave.textContent = "Create Product";
+      productForm.reset();
+      document.getElementById("form-id").value = "";
+      document.getElementById("form-quantity").value = -1;
+      document.getElementById("form-sizes").value = "S, M, L, XL, XXL";
+      document.getElementById("form-colors").value = "Black";
+      openModal();
+    });
+
+    // ── Open Delete ──
+    window.openDelete = function (id) {
+      var p = allProducts.find(function (prod) { return prod.id === id; });
+      if (!p) return;
+
+      deleteIdInput.value = p.id;
+      deleteName.textContent = p.name;
+      openDeleteModal();
+    };
+
+    // ── Form Submit (Create or Update) ──
+    productForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      modalSave.disabled = true;
+      modalSave.textContent = "Saving...";
+
+      var sizesRaw = document.getElementById("form-sizes").value;
+      var colorsRaw = document.getElementById("form-colors").value;
+
+      var data = {
+        name: document.getElementById("form-name").value.trim(),
+        description: document.getElementById("form-description").value.trim(),
+        price: Number(document.getElementById("form-price").value),
+        quantity: Number(document.getElementById("form-quantity").value),
+        productType: document.getElementById("form-type").value,
+        printMethod: document.getElementById("form-print").value,
+        tapstitchProductId: document.getElementById("form-tapstitch").value.trim(),
+        sizes: sizesRaw.split(",").map(function (s) { return s.trim(); }).filter(Boolean),
+        colors: colorsRaw.split(",").map(function (s) { return s.trim(); }).filter(Boolean),
+        image: document.getElementById("form-image").value.trim(),
+        imageBack: document.getElementById("form-image-back").value.trim(),
+      };
+
+      try {
+        var url, method;
+        if (editMode) {
+          data.id = Number(document.getElementById("form-id").value);
+          url = "/api/admin/products-update";
+          method = "PUT";
+        } else {
+          url = "/api/admin/products-create";
+          method = "POST";
+        }
+
+        var res = await fetch(url, {
+          method: method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (!res.ok) {
+          var err = await res.json();
+          throw new Error(err.error || "Request failed");
+        }
+
+        closeModal();
+        showToast(editMode ? "Product updated" : "Product created");
+        await loadProducts();
+      } catch (err) {
+        showToast("Error: " + err.message, true);
+      } finally {
+        modalSave.disabled = false;
+        modalSave.textContent = editMode ? "Save Changes" : "Create Product";
+      }
+    });
+
+    // ── Delete Confirm ──
+    deleteConfirmBtn.addEventListener("click", async function () {
+      var id = Number(deleteIdInput.value);
+      deleteConfirmBtn.textContent = "Deleting...";
+      deleteConfirmBtn.disabled = true;
+
+      try {
+        var res = await fetch("/api/admin/products-delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id }),
+        });
+
+        if (!res.ok) {
+          var err = await res.json();
+          throw new Error(err.error || "Delete failed");
+        }
+
+        closeDeleteModal();
+        showToast("Product deleted");
+        await loadProducts();
+      } catch (err) {
+        showToast("Error: " + err.message, true);
+      } finally {
+        deleteConfirmBtn.textContent = "Delete";
+        deleteConfirmBtn.disabled = false;
+      }
+    });
+
+    // ── Close handlers ──
+    modalCancel.addEventListener("click", closeModal);
+    productModal.addEventListener("click", function (e) {
+      if (e.target === productModal) closeModal();
+    });
+
+    deleteCancel.addEventListener("click", closeDeleteModal);
+    deleteModal.addEventListener("click", function (e) {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeModal();
+        closeDeleteModal();
+      }
+    });
+
+    refreshBtn.addEventListener("click", loadProducts);
+
+    // ── Init ──
+    loadProducts();
+  </script>
+</body>
+</html>

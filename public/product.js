@@ -1,44 +1,5 @@
-// ── Product Catalog (shared with script.js) ──
-const products = [
-  {
-    id: 1,
-    name: "Essential HooDoo Cotton Boxy Tee",
-    description: "6.5oz heavyweight cotton, boxy relaxed fit, DTG printed",
-    productType: "tee",
-    tapstitchProductId: "TS-HW-TEE-001",
-    printMethod: "dtg",
-    price: 4500,
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: ["Black"],
-    image: "hoodoo-tee-front.webp",
-    imageBack: "hoodoo-tee-back.png",
-  },
-  {
-    id: 8,
-    name: '"2nd Sight" Oversize Graphic Hoodie',
-    description: "400GSM French terry, dropped shoulders, oversize fit, DTG printed",
-    productType: "hoodie",
-    tapstitchProductId: "TS-HW-HOOD-002",
-    printMethod: "dtg",
-    price: 7200,
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: ["Forest"],
-    image: "2nd-sight-hoodie-front.png",
-    imageBack: "2nd-sight-hoodie-back.png",
-  },
-  {
-    id: 7,
-    name: 'Vintage "Build Different" Wash Boxy Tee',
-    description: "6.5oz heavyweight cotton, vintage wash finish, boxy relaxed fit, DTG printed",
-    productType: "tee",
-    tapstitchProductId: "TS-VW-TEE-001",
-    printMethod: "dtg",
-    price: 4800,
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: ["White"],
-    image: "build-different-front.webp",
-  },
-];
+// ── Product Catalog (fetched from API) ──
+let products = [];
 
 // ── Cart State (localStorage-backed) ──
 let cart = JSON.parse(localStorage.getItem("hoodoo_cart") || "[]");
@@ -350,10 +311,19 @@ checkoutBtn.addEventListener("click", async () => {
 });
 
 // ── Init ──
-renderProductDetail();
-updateCart();
+async function init() {
+  try {
+    const res = await fetch("/api/products");
+    products = await res.json();
+  } catch (err) {
+    console.error("Failed to load products:", err);
+  }
+  renderProductDetail();
+  updateCart();
 
-// Track product view
-if (window.HoodooAnalytics && getProductId()) {
-  HoodooAnalytics.track("product_view");
+  // Track product view
+  if (window.HoodooAnalytics && getProductId()) {
+    HoodooAnalytics.track("product_view");
+  }
 }
+init();

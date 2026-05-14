@@ -204,7 +204,106 @@ app.patch("/admin/orders/:id", (req, res) => {
   res.json(order);
 });
 
+// ── Products API (local dev) ──
+const { getProducts, saveProducts } = require("./lib/products-store");
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const products = await getProducts();
+    res.json(products);
+  } catch (err) {
+    console.error("Failed to fetch products:", err.message);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+app.put("/api/admin/products-update", async (req, res) => {
+  try {
+    const updates = req.body;
+    if (!updates || !updates.id) {
+      return res.status(400).json({ error: "Product id is required" });
+    }
+
+    const products = await getProducts();
+    const index = products.findIndex((p) => p.id === updates.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const allowed = [
+      "name", "description", "productType", "tapstitchProductId",
+      "printMethod", "price", "sizes", "colors", "image", "imageBack", "quantity",
+    ];
+    for (const key of allowed) {
+      if (updates[key] !== undefined) {
+        products[index][key] = updates[key];
+      }
+    }
+
+    await saveProducts(products);
+    res.json(products[index]);
+  } catch (err) {
+    console.error("Failed to update product:", err.message);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+app.post("/api/admin/products-create", async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || !body.name || !body.price) {
+      return res.status(400).json({ error: "Name and price are required" });
+    }
+
+    const products = await getProducts();
+    const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
+    const newProduct = {
+      id: maxId + 1,
+      name: body.name,
+      description: body.description || "",
+      productType: body.productType || "tee",
+      tapstitchProductId: body.tapstitchProductId || "",
+      printMethod: body.printMethod || "dtg",
+      price: Number(body.price),
+      sizes: body.sizes || ["S", "M", "L", "XL", "XXL"],
+      colors: body.colors || ["Black"],
+      image: body.image || "",
+      imageBack: body.imageBack || "",
+      quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
+    };
+
+    products.push(newProduct);
+    await saveProducts(products);
+    res.status(201).json(newProduct);
+  } catch (err) {
+    console.error("Failed to create product:", err.message);
+    res.status(500).json({ error: "Failed to create product" });
+  }
+});
+
+app.delete("/api/admin/products-delete", async (req, res) => {
+  try {
+    const { id } = req.body || {};
+    if (!id) {
+      return res.status(400).json({ error: "Product id is required" });
+    }
+
+    const products = await getProducts();
+    const index = products.findIndex((p) => p.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const removed = products.splice(index, 1)[0];
+    await saveProducts(products);
+    res.json({ success: true, deleted: removed });
+  } catch (err) {
+    console.error("Failed to delete product:", err.message);
+    res.status(500).json({ error: "Failed to delete product" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin.html`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin/index.html`);
 });

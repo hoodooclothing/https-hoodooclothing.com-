@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "name": "Essential HooDoo Cotton Boxy Tee",
+    "description": "6.5oz heavyweight cotton, boxy relaxed fit, DTG printed",
+    "productType": "tee",
+    "tapstitchProductId": "TS-HW-TEE-001",
+    "printMethod": "dtg",
+    "price": 4500,
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "colors": ["Black"],
+    "image": "hoodoo-tee-front.webp",
+    "imageBack": "hoodoo-tee-back.png",
+    "quantity": -1
+  },
+  {
+    "id": 8,
+    "name": "\"2nd Sight\" Oversize Graphic Hoodie",
+    "description": "400GSM French terry, dropped shoulders, oversize fit, DTG printed",
+    "productType": "hoodie",
+    "tapstitchProductId": "TS-HW-HOOD-002",
+    "printMethod": "dtg",
+    "price": 7200,
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "colors": ["Forest"],
+    "image": "2nd-sight-hoodie-front.png",
+    "imageBack": "2nd-sight-hoodie-back.png",
+    "quantity": -1
+  },
+  {
+    "id": 7,
+    "name": "Vintage \"Build Different\" Wash Boxy Tee",
+    "description": "6.5oz heavyweight cotton, vintage wash finish, boxy relaxed fit, DTG printed",
+    "productType": "tee",
+    "tapstitchProductId": "TS-VW-TEE-001",
+    "printMethod": "dtg",
+    "price": 4800,
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "colors": ["White"],
+    "image": "build-different-front.webp",
+    "quantity": -1
+  }
+]

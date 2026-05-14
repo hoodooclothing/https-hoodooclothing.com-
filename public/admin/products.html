@@ -49,6 +49,41 @@
       border-color: #e55;
     }
 
+    .btn-icon.btn-toggle-off:hover {
+      color: #f0a050;
+      border-color: #f0a050;
+    }
+
+    .btn-icon.btn-toggle-on:hover {
+      color: #50c080;
+      border-color: #50c080;
+    }
+
+    .row-off-sale {
+      opacity: 0.45;
+    }
+
+    .row-off-sale:hover {
+      opacity: 0.7;
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #1a3a2a;
+      color: #50c080;
+    }
+
+    .status-off-sale {
+      background: #3a2a1a;
+      color: #f0a050;
+    }
+
     .qty-badge {
       font-size: 0.75rem;
       padding: 2px 8px;
@@ -317,11 +352,12 @@
             <th>Type</th>
             <th>Price</th>
             <th>Quantity</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="products-body">
-          <tr><td colspan="6" class="admin-loading">Loading products...</td></tr>
+          <tr><td colspan="7" class="admin-loading">Loading products...</td></tr>
         </tbody>
       </table>
     </main>
@@ -465,23 +501,24 @@
     // ── Load Products ──
     async function loadProducts() {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/admin/products");
         allProducts = await res.json();
         renderProducts();
       } catch (err) {
         console.error("Failed to load products:", err);
-        productsBody.innerHTML = '<tr><td colspan="6" class="admin-empty">Failed to load products.</td></tr>';
+        productsBody.innerHTML = '<tr><td colspan="7" class="admin-empty">Failed to load products.</td></tr>';
       }
     }
 
     // ── Render Products Table ──
     function renderProducts() {
       if (!allProducts || allProducts.length === 0) {
-        productsBody.innerHTML = '<tr><td colspan="6" class="admin-empty">No products yet. Click "+ Add Product" to create one.</td></tr>';
+        productsBody.innerHTML = '<tr><td colspan="7" class="admin-empty">No products yet. Click "+ Add Product" to create one.</td></tr>';
         return;
       }
 
       productsBody.innerHTML = allProducts.map(function (p) {
+        var isActive = p.active !== false;
         var qtyLabel;
         if (p.quantity === -1) {
           qtyLabel = '<span class="qty-badge qty-unlimited">Unlimited</span>';
@@ -491,18 +528,30 @@
           qtyLabel = '<span class="qty-badge qty-ok">' + p.quantity + '</span>';
         }
 
+        var statusBadge = isActive
+          ? '<span class="status-badge status-active">Active</span>'
+          : '<span class="status-badge status-off-sale">Off Sale</span>';
+
+        var toggleBtn = isActive
+          ? '<button class="btn-icon btn-toggle-off" onclick="toggleActive(' + p.id + ', false)">Take Off Sale</button>'
+          : '<button class="btn-icon btn-toggle-on" onclick="toggleActive(' + p.id + ', true)">Put On Sale</button>';
+
         var imgSrc = p.image ? '/' + p.image : '';
         var imgTag = imgSrc
           ? '<img src="' + imgSrc + '" alt="' + p.name + '" class="product-thumb" />'
           : '<div class="product-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.6rem;">No img</div>';
 
-        return '<tr>' +
+        var rowClass = isActive ? '' : ' class="row-off-sale"';
+
+        return '<tr' + rowClass + '>' +
           '<td>' + imgTag + '</td>' +
           '<td>' + p.name + '</td>' +
           '<td style="text-transform:capitalize;">' + (p.productType || '') + '</td>' +
           '<td>' + formatCurrency(p.price) + '</td>' +
           '<td>' + qtyLabel + '</td>' +
+          '<td>' + statusBadge + '</td>' +
           '<td><div class="product-actions">' +
+            toggleBtn +
             '<button class="btn-icon" onclick="openEdit(' + p.id + ')">Edit</button>' +
             '<button class="btn-icon btn-danger" onclick="openDelete(' + p.id + ')">Delete</button>' +
           '</div></td>' +
@@ -575,6 +624,27 @@
       deleteIdInput.value = p.id;
       deleteName.textContent = p.name;
       openDeleteModal();
+    };
+
+    // ── Toggle Active Status ──
+    window.toggleActive = async function (id, active) {
+      try {
+        var res = await fetch("/api/admin/products-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id, active: active }),
+        });
+
+        if (!res.ok) {
+          var err = await res.json();
+          throw new Error(err.error || "Update failed");
+        }
+
+        showToast(active ? "Product is back on sale" : "Product taken off sale");
+        await loadProducts();
+      } catch (err) {
+        showToast("Error: " + err.message, true);
+      }
     };
 
     // ── Form Submit (Create or Update) ──

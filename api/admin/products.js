@@ -1,4 +1,4 @@
-const { getProducts } = require("../lib/products-store");
+const { getProducts } = require("../../lib/products-store");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const products = await getProducts();
-    res.json(products.filter(p => p.active !== false));
+    res.json(products);
   } catch (err) {
     console.error("Failed to fetch products:", err.message);
     res.status(500).json({ error: "Failed to fetch products" });

@@ -28,6 +28,7 @@ module.exports = async function handler(req, res) {
       image: body.image || "",
       imageBack: body.imageBack || "",
       quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
+      active: true,
     };
 
     products.push(newProduct);

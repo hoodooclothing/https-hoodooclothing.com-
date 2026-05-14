@@ -233,6 +233,16 @@ const { getProducts, saveProducts } = require("./lib/products-store");
 app.get("/api/products", async (req, res) => {
   try {
     const products = await getProducts();
+    res.json(products.filter(p => p.active !== false));
+  } catch (err) {
+    console.error("Failed to fetch products:", err.message);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+app.get("/api/admin/products", async (req, res) => {
+  try {
+    const products = await getProducts();
     res.json(products);
   } catch (err) {
     console.error("Failed to fetch products:", err.message);
@@ -256,6 +266,7 @@ app.post("/api/admin/products-update", async (req, res) => {
     const allowed = [
       "name", "description", "productType", "tapstitchProductId",
       "printMethod", "price", "sizes", "colors", "image", "imageBack", "quantity",
+      "active",
     ];
     for (const key of allowed) {
       if (updates[key] !== undefined) {
@@ -293,6 +304,7 @@ app.post("/api/admin/products-create", async (req, res) => {
       image: body.image || "",
       imageBack: body.imageBack || "",
       quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
+      active: true,
     };
 
     products.push(newProduct);

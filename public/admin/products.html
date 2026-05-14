@@ -292,6 +292,152 @@
       background: #c44;
       color: #fff;
     }
+
+    /* ── Image Upload ── */
+    .image-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .image-upload-area:hover,
+    .image-upload-area.drag-over {
+      border-color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .image-upload-area.drag-over {
+      border-color: #50c080;
+      background: rgba(80,192,128,0.05);
+    }
+
+    .image-upload-area.has-image {
+      border-style: solid;
+    }
+
+    .image-preview {
+      max-width: 120px;
+      max-height: 120px;
+      object-fit: contain;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .upload-icon {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .upload-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .upload-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      font-size: 0.75rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .upload-btn:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .upload-btn.btn-remove {
+      color: #e55;
+      border-color: rgba(238,85,85,0.3);
+    }
+
+    .upload-btn.btn-remove:hover {
+      border-color: #e55;
+    }
+
+    .upload-hint {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    .upload-status {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .upload-status.error {
+      color: #e55;
+    }
+
+    .upload-status.success {
+      color: #50c080;
+    }
+
+    .upload-status.uploading {
+      color: #5a9fd4;
+    }
+
+    .upload-progress {
+      width: 100%;
+      max-width: 160px;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .upload-progress.active {
+      display: block;
+    }
+
+    .upload-progress-bar {
+      height: 100%;
+      background: #50c080;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    @media (max-width: 600px) {
+      .image-upload-area {
+        padding: 24px 12px;
+        min-height: 100px;
+      }
+      .upload-btn {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -435,12 +581,40 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="form-image">Front Image Filename</label>
-            <input type="text" id="form-image" placeholder="product-front.webp" />
+            <label>Front Image</label>
+            <input type="hidden" id="form-image" />
+            <div class="image-upload-area" id="upload-area-image">
+              <img class="image-preview" id="preview-image" style="display:none;" />
+              <div class="upload-icon" id="upload-icon-image">&#128247;</div>
+              <div class="upload-buttons">
+                <span class="upload-btn" id="upload-btn-image">Choose File</span>
+                <span class="upload-btn" id="camera-btn-image">Take Photo</span>
+                <span class="upload-btn btn-remove" id="remove-btn-image" style="display:none;">Remove</span>
+              </div>
+              <div class="upload-hint" id="upload-hint-image">or drag &amp; drop an image here</div>
+              <div class="upload-status" id="status-image">No image selected</div>
+              <div class="upload-progress" id="progress-image"><div class="upload-progress-bar" id="progress-bar-image"></div></div>
+            </div>
+            <input type="file" id="file-image" accept="image/*" style="display:none;" />
+            <input type="file" id="camera-image" accept="image/*" capture="environment" style="display:none;" />
           </div>
           <div class="form-group">
-            <label for="form-image-back">Back Image Filename</label>
-            <input type="text" id="form-image-back" placeholder="product-back.png" />
+            <label>Back Image</label>
+            <input type="hidden" id="form-image-back" />
+            <div class="image-upload-area" id="upload-area-image-back">
+              <img class="image-preview" id="preview-image-back" style="display:none;" />
+              <div class="upload-icon" id="upload-icon-image-back">&#128247;</div>
+              <div class="upload-buttons">
+                <span class="upload-btn" id="upload-btn-image-back">Choose File</span>
+                <span class="upload-btn" id="camera-btn-image-back">Take Photo</span>
+                <span class="upload-btn btn-remove" id="remove-btn-image-back" style="display:none;">Remove</span>
+              </div>
+              <div class="upload-hint" id="upload-hint-image-back">or drag &amp; drop an image here</div>
+              <div class="upload-status" id="status-image-back">No image selected</div>
+              <div class="upload-progress" id="progress-image-back"><div class="upload-progress-bar" id="progress-bar-image-back"></div></div>
+            </div>
+            <input type="file" id="file-image-back" accept="image/*" style="display:none;" />
+            <input type="file" id="camera-image-back" accept="image/*" capture="environment" style="display:none;" />
           </div>
         </div>
 
@@ -536,7 +710,7 @@
           ? '<button class="btn-icon btn-toggle-off" onclick="toggleActive(' + p.id + ', false)">Take Off Sale</button>'
           : '<button class="btn-icon btn-toggle-on" onclick="toggleActive(' + p.id + ', true)">Put On Sale</button>';
 
-        var imgSrc = p.image ? '/' + p.image : '';
+        var imgSrc = p.image ? (p.image.startsWith('http') ? p.image : '/' + p.image) : '';
         var imgTag = imgSrc
           ? '<img src="' + imgSrc + '" alt="' + p.name + '" class="product-thumb" />'
           : '<div class="product-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.6rem;">No img</div>';
@@ -568,6 +742,8 @@
       productModal.classList.remove("open");
       productForm.reset();
       document.getElementById("form-id").value = "";
+      clearImageUpload("image");
+      clearImageUpload("image-back");
     }
 
     function openDeleteModal() {
@@ -600,6 +776,9 @@
       document.getElementById("form-image").value = p.image || "";
       document.getElementById("form-image-back").value = p.imageBack || "";
 
+      showExistingPreview("image", p.image);
+      showExistingPreview("image-back", p.imageBack);
+
       openModal();
     };
 
@@ -610,9 +789,13 @@
       modalSave.textContent = "Create Product";
       productForm.reset();
       document.getElementById("form-id").value = "";
+      document.getElementById("form-image").value = "";
+      document.getElementById("form-image-back").value = "";
       document.getElementById("form-quantity").value = -1;
       document.getElementById("form-sizes").value = "S, M, L, XL, XXL";
       document.getElementById("form-colors").value = "Black";
+      clearImageUpload("image");
+      clearImageUpload("image-back");
       openModal();
     });
 
@@ -751,6 +934,221 @@
     });
 
     refreshBtn.addEventListener("click", loadProducts);
+
+    // ── Image Upload ──
+    function setupImageUpload(fieldName) {
+      var hiddenInput = document.getElementById("form-" + fieldName);
+      var fileInput = document.getElementById("file-" + fieldName);
+      var cameraInput = document.getElementById("camera-" + fieldName);
+      var area = document.getElementById("upload-area-" + fieldName);
+      var preview = document.getElementById("preview-" + fieldName);
+      var statusEl = document.getElementById("status-" + fieldName);
+      var chooseBtn = document.getElementById("upload-btn-" + fieldName);
+      var cameraBtn = document.getElementById("camera-btn-" + fieldName);
+      var removeBtn = document.getElementById("remove-btn-" + fieldName);
+      var iconEl = document.getElementById("upload-icon-" + fieldName);
+      var hintEl = document.getElementById("upload-hint-" + fieldName);
+      var progressEl = document.getElementById("progress-" + fieldName);
+      var progressBar = document.getElementById("progress-bar-" + fieldName);
+
+      function showImageState(hasImage) {
+        if (hasImage) {
+          area.classList.add("has-image");
+          removeBtn.style.display = "";
+          iconEl.style.display = "none";
+          hintEl.style.display = "none";
+        } else {
+          area.classList.remove("has-image");
+          removeBtn.style.display = "none";
+          iconEl.style.display = "";
+          hintEl.style.display = "";
+        }
+      }
+
+      // Choose file button (opens file picker - gallery on mobile)
+      chooseBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        fileInput.click();
+      });
+
+      // Camera button (opens camera on mobile, file picker on desktop)
+      cameraBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        cameraInput.click();
+      });
+
+      // Remove button
+      removeBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        clearImageUpload(fieldName);
+      });
+
+      // Clicking the area itself opens file picker
+      area.addEventListener("click", function (e) {
+        if (e.target === area || e.target === iconEl || e.target === hintEl || e.target === preview) {
+          fileInput.click();
+        }
+      });
+
+      // Drag and drop
+      area.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        area.classList.add("drag-over");
+      });
+
+      area.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        area.classList.remove("drag-over");
+      });
+
+      area.addEventListener("drop", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        area.classList.remove("drag-over");
+
+        var files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          var file = files[0];
+          if (file.type.startsWith("image/")) {
+            handleFile(file);
+          } else {
+            statusEl.textContent = "Please drop an image file";
+            statusEl.className = "upload-status error";
+          }
+        }
+      });
+
+      // Handle file selection from either input
+      fileInput.addEventListener("change", function () {
+        var file = fileInput.files[0];
+        if (file) handleFile(file);
+      });
+
+      cameraInput.addEventListener("change", function () {
+        var file = cameraInput.files[0];
+        if (file) handleFile(file);
+      });
+
+      async function handleFile(file) {
+        // Validate type
+        if (!file.type.startsWith("image/")) {
+          statusEl.textContent = "Please select an image file";
+          statusEl.className = "upload-status error";
+          return;
+        }
+
+        // Validate size (4.5MB)
+        if (file.size > 4.5 * 1024 * 1024) {
+          statusEl.textContent = "Image must be under 4.5 MB";
+          statusEl.className = "upload-status error";
+          return;
+        }
+
+        // Show instant local preview
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+          showImageState(true);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload
+        statusEl.textContent = "Uploading...";
+        statusEl.className = "upload-status uploading";
+        chooseBtn.textContent = "Uploading...";
+        progressEl.classList.add("active");
+        progressBar.style.width = "20%";
+
+        try {
+          // Simulate progress steps
+          progressBar.style.width = "40%";
+
+          var res = await fetch("/api/admin/upload-image", {
+            method: "POST",
+            headers: {
+              "Content-Type": file.type,
+              "X-Filename": file.name,
+            },
+            body: file,
+          });
+
+          progressBar.style.width = "80%";
+
+          if (!res.ok) {
+            var err = await res.json();
+            throw new Error(err.error || "Upload failed");
+          }
+
+          var data = await res.json();
+          hiddenInput.value = data.url;
+          progressBar.style.width = "100%";
+          statusEl.textContent = "Uploaded successfully";
+          statusEl.className = "upload-status success";
+
+          setTimeout(function () {
+            progressEl.classList.remove("active");
+            progressBar.style.width = "0%";
+          }, 1000);
+        } catch (err) {
+          statusEl.textContent = "Upload failed: " + err.message;
+          statusEl.className = "upload-status error";
+          progressEl.classList.remove("active");
+          progressBar.style.width = "0%";
+        } finally {
+          chooseBtn.textContent = "Choose File";
+        }
+      }
+    }
+
+    function showExistingPreview(fieldName, imageValue) {
+      if (!imageValue) return;
+      var preview = document.getElementById("preview-" + fieldName);
+      var area = document.getElementById("upload-area-" + fieldName);
+      var statusEl = document.getElementById("status-" + fieldName);
+      var removeBtn = document.getElementById("remove-btn-" + fieldName);
+      var iconEl = document.getElementById("upload-icon-" + fieldName);
+      var hintEl = document.getElementById("upload-hint-" + fieldName);
+      var src = imageValue.startsWith("http") ? imageValue : "/" + imageValue;
+      preview.src = src;
+      preview.style.display = "block";
+      area.classList.add("has-image");
+      removeBtn.style.display = "";
+      iconEl.style.display = "none";
+      hintEl.style.display = "none";
+      statusEl.textContent = "Current image";
+      statusEl.className = "upload-status";
+    }
+
+    function clearImageUpload(fieldName) {
+      var hiddenInput = document.getElementById("form-" + fieldName);
+      var preview = document.getElementById("preview-" + fieldName);
+      var area = document.getElementById("upload-area-" + fieldName);
+      var statusEl = document.getElementById("status-" + fieldName);
+      var fileInput = document.getElementById("file-" + fieldName);
+      var cameraInput = document.getElementById("camera-" + fieldName);
+      var removeBtn = document.getElementById("remove-btn-" + fieldName);
+      var iconEl = document.getElementById("upload-icon-" + fieldName);
+      var hintEl = document.getElementById("upload-hint-" + fieldName);
+      var progressEl = document.getElementById("progress-" + fieldName);
+      preview.src = "";
+      preview.style.display = "none";
+      area.classList.remove("has-image");
+      statusEl.textContent = "No image selected";
+      statusEl.className = "upload-status";
+      fileInput.value = "";
+      cameraInput.value = "";
+      hiddenInput.value = "";
+      removeBtn.style.display = "none";
+      iconEl.style.display = "";
+      hintEl.style.display = "";
+      progressEl.classList.remove("active");
+    }
+
+    setupImageUpload("image");
+    setupImageUpload("image-back");
 
     // ── Init ──
     loadProducts();

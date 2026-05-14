@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     const allowed = [
       "name", "description", "productType", "tapstitchProductId",
       "printMethod", "price", "sizes", "colors", "image", "imageBack", "quantity",
-      "active",
+      "active", "colorVariants",
     ];
 
     for (const key of allowed) {

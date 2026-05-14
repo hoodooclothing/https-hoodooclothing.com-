@@ -24,6 +24,50 @@ function writeOrders(orders) {
 
 app.use(cors());
 
+// Image upload needs raw body — must be registered before express.json()
+const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+app.post(
+  "/api/admin/upload-image",
+  express.raw({ type: "image/*", limit: "5mb" }),
+  async (req, res) => {
+    const contentType = req.headers["content-type"] || "";
+    if (!contentType.startsWith("image/")) {
+      return res.status(400).json({ error: "Content-Type must be image/*" });
+    }
+
+    const filename = req.headers["x-filename"];
+    if (!filename) {
+      return res.status(400).json({ error: "X-Filename header is required" });
+    }
+
+    if (!req.body || !req.body.length) {
+      return res.status(400).json({ error: "Empty file" });
+    }
+
+    try {
+      if (isProduction) {
+        const { put } = require("@vercel/blob");
+        const blobPath = `products/${Date.now()}-${filename}`;
+        const blob = await put(blobPath, req.body, {
+          access: "public",
+          contentType,
+        });
+        return res.json({ url: blob.url });
+      }
+
+      // Local dev: save to public/ directory
+      const safeName = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+      const destPath = path.join(__dirname, "public", safeName);
+      fs.writeFileSync(destPath, req.body);
+      return res.json({ url: safeName });
+    } catch (err) {
+      console.error("Image upload failed:", err.message);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  }
+);
+
 // Stripe webhook needs raw body — must be registered before express.json()
 app.post(
   "/webhook",
@@ -266,7 +310,7 @@ app.post("/api/admin/products-update", async (req, res) => {
     const allowed = [
       "name", "description", "productType", "tapstitchProductId",
       "printMethod", "price", "sizes", "colors", "image", "imageBack", "quantity",
-      "active",
+      "active", "colorVariants",
     ];
     for (const key of allowed) {
       if (updates[key] !== undefined) {
@@ -303,6 +347,7 @@ app.post("/api/admin/products-create", async (req, res) => {
       colors: body.colors || ["Black"],
       image: body.image || "",
       imageBack: body.imageBack || "",
+      colorVariants: body.colorVariants || [],
       quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
       active: true,
     };

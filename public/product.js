@@ -1,6 +1,22 @@
 // ── Product Catalog (fetched from API) ──
 let products = [];
 
+// ── Color Variant Helpers ──
+function getVariant(product, color) {
+  if (product.colorVariants && product.colorVariants.length > 0) {
+    var v = product.colorVariants.find(function (cv) { return cv.color === color; });
+    return v || product.colorVariants[0];
+  }
+  return { color: color, image: product.image, imageBack: product.imageBack || "", price: product.price };
+}
+
+function getColors(product) {
+  if (product.colorVariants && product.colorVariants.length > 0) {
+    return product.colorVariants.map(function (cv) { return cv.color; });
+  }
+  return product.colors || [];
+}
+
 // ── Cart State (localStorage-backed) ──
 let cart = JSON.parse(localStorage.getItem("hoodoo_cart") || "[]");
 
@@ -46,8 +62,14 @@ function renderProductDetail() {
 
   document.title = `${product.name} — HOODOO`;
 
-  const images = [product.image];
-  if (product.imageBack) images.push(product.imageBack);
+  const colors = getColors(product);
+  const firstVariant = getVariant(product, colors[0]);
+  const initImage = firstVariant.image || product.image;
+  const initImageBack = firstVariant.imageBack || product.imageBack || "";
+  const initPrice = firstVariant.price || product.price;
+
+  const images = [initImage];
+  if (initImageBack) images.push(initImageBack);
 
   pdpContainer.innerHTML = `
     <div class="pdp-breadcrumb">
@@ -56,21 +78,21 @@ function renderProductDetail() {
     <div class="pdp-layout">
       <div class="pdp-images">
         <div class="pdp-main-image" id="pdp-main-image">
-          <img src="${product.image}" alt="${product.name}" class="pdp-img clickable-img" data-src="${product.image}" />
+          <img src="${initImage}" alt="${product.name}" class="pdp-img clickable-img" data-src="${initImage}" />
         </div>
         ${images.length > 1 ? `
-          <div class="pdp-thumbs">
+          <div class="pdp-thumbs" id="pdp-thumbs">
             ${images.map((img, i) => `
               <div class="pdp-thumb ${i === 0 ? "active" : ""}" data-src="${img}">
                 <img src="${img}" alt="${product.name}" />
               </div>
             `).join("")}
           </div>
-        ` : ""}
+        ` : '<div class="pdp-thumbs" id="pdp-thumbs"></div>'}
       </div>
       <div class="pdp-details">
         <h1 class="pdp-title">${product.name}</h1>
-        <p class="pdp-price">$${(product.price / 100).toFixed(2)}</p>
+        <p class="pdp-price" id="pdp-price-text">$${(initPrice / 100).toFixed(2)}</p>
         <p class="pdp-description">${product.description}</p>
         <div class="pdp-variants">
           <div class="pdp-variant-group">
@@ -81,16 +103,16 @@ function renderProductDetail() {
               `).join("")}
             </div>
           </div>
-          ${product.colors.length > 1 ? `
+          ${colors.length > 1 ? `
             <div class="pdp-variant-group">
               <label class="variant-label">Color</label>
               <div class="pdp-color-options" id="pdp-colors">
-                ${product.colors.map((c, i) => `
+                ${colors.map((c, i) => `
                   <button class="pdp-color-btn ${i === 0 ? "active" : ""}" data-color="${c}">${c}</button>
                 `).join("")}
               </div>
             </div>
-          ` : `<input type="hidden" id="pdp-single-color" value="${product.colors[0]}" />`}
+          ` : `<input type="hidden" id="pdp-single-color" value="${colors[0]}" />`}
         </div>
 
         <button class="btn btn-primary btn-full pdp-add-to-cart" id="pdp-add-to-cart">Add to Cart</button>
@@ -125,12 +147,49 @@ function renderProductDetail() {
     });
   });
 
-  // Color selector
+  // Color selector — swap images, thumbnails, and price
   const colorBtns = pdpContainer.querySelectorAll(".pdp-color-btn");
   colorBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       colorBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+
+      const variant = getVariant(product, btn.dataset.color);
+      const vImage = variant.image || product.image;
+      const vImageBack = variant.imageBack || "";
+      const vPrice = variant.price || product.price;
+
+      // Update main image
+      const mainImg = pdpContainer.querySelector(".pdp-img");
+      if (mainImg) {
+        mainImg.src = vImage;
+        mainImg.dataset.src = vImage;
+      }
+
+      // Rebuild thumbnails
+      const thumbsContainer = document.getElementById("pdp-thumbs");
+      if (thumbsContainer) {
+        const thumbImages = [vImage];
+        if (vImageBack) thumbImages.push(vImageBack);
+        thumbsContainer.innerHTML = thumbImages.map((img, i) => `
+          <div class="pdp-thumb ${i === 0 ? "active" : ""}" data-src="${img}">
+            <img src="${img}" alt="${product.name}" />
+          </div>
+        `).join("");
+        // Re-wire thumb clicks
+        thumbsContainer.querySelectorAll(".pdp-thumb").forEach((thumb) => {
+          thumb.addEventListener("click", () => {
+            thumbsContainer.querySelectorAll(".pdp-thumb").forEach((t) => t.classList.remove("active"));
+            thumb.classList.add("active");
+            const mi = pdpContainer.querySelector(".pdp-img");
+            if (mi) { mi.src = thumb.dataset.src; mi.dataset.src = thumb.dataset.src; }
+          });
+        });
+      }
+
+      // Update price
+      const priceEl = document.getElementById("pdp-price-text");
+      if (priceEl) priceEl.textContent = "$" + (vPrice / 100).toFixed(2);
     });
   });
 
@@ -181,6 +240,7 @@ function addToCart(productId, size, color) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
 
+  const variant = getVariant(product, color);
   const key = cartKey(productId, size, color);
   const existing = cart.find((item) => item.key === key);
 
@@ -192,6 +252,8 @@ function addToCart(productId, size, color) {
       key,
       size,
       color,
+      price: variant.price || product.price,
+      image: variant.image || product.image,
       quantity: 1,
     });
   }

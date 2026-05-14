@@ -1,6 +1,22 @@
 // ── Product Catalog (fetched from API) ──
 let products = [];
 
+// ── Color Variant Helpers ──
+function getVariant(product, color) {
+  if (product.colorVariants && product.colorVariants.length > 0) {
+    var v = product.colorVariants.find(function (cv) { return cv.color === color; });
+    return v || product.colorVariants[0];
+  }
+  return { color: color, image: product.image, imageBack: product.imageBack || "", price: product.price };
+}
+
+function getColors(product) {
+  if (product.colorVariants && product.colorVariants.length > 0) {
+    return product.colorVariants.map(function (cv) { return cv.color; });
+  }
+  return product.colors || [];
+}
+
 // ── Cart State (localStorage-backed) ──
 let cart = JSON.parse(localStorage.getItem("hoodoo_cart") || "[]");
 
@@ -24,12 +40,18 @@ const checkoutBtn = document.getElementById("checkout-btn");
 function renderProducts() {
   productGrid.innerHTML = products
     .map(
-      (p) => `
+      (p) => {
+        const colors = getColors(p);
+        const firstVariant = getVariant(p, colors[0]);
+        const frontImg = firstVariant.image || p.image;
+        const backImg = firstVariant.imageBack || p.imageBack || "";
+        const price = firstVariant.price || p.price;
+        return `
     <a href="/product.html?id=${p.id}" class="product-card-link">
       <div class="product-card" data-id="${p.id}">
         <div class="product-image">
-          <img src="${p.image}" alt="${p.name}" loading="lazy" class="product-img-front" />
-          ${p.imageBack ? `<img src="${p.imageBack}" alt="${p.name} back" loading="lazy" class="product-img-back" />` : ""}
+          <img src="${frontImg}" alt="${p.name}" loading="lazy" class="product-img-front" />
+          ${backImg ? `<img src="${backImg}" alt="${p.name} back" loading="lazy" class="product-img-back" />` : ""}
         </div>
         <div class="product-info">
           <h3 class="product-name">${p.name}</h3>
@@ -44,18 +66,19 @@ function renderProducts() {
             <div class="variant-group">
               <label class="variant-label">Color</label>
               <select class="variant-select color-select" data-id="${p.id}">
-                ${p.colors.map((c) => `<option value="${c}">${c}</option>`).join("")}
+                ${colors.map((c) => `<option value="${c}">${c}</option>`).join("")}
               </select>
             </div>
           </div>
           <div class="product-bottom">
-            <span class="product-price">$${(p.price / 100).toFixed(2)}</span>
+            <span class="product-price">$${(price / 100).toFixed(2)}</span>
             <button class="product-buy" data-id="${p.id}">Add to Cart</button>
           </div>
         </div>
       </div>
     </a>
-  `
+  `;
+      }
     )
     .join("");
 
@@ -63,6 +86,31 @@ function renderProducts() {
   productGrid.querySelectorAll(".variant-select").forEach((sel) => {
     sel.addEventListener("click", (e) => e.preventDefault());
     sel.addEventListener("mousedown", (e) => e.stopPropagation());
+  });
+
+  // Color change listener — swap images and price
+  productGrid.querySelectorAll(".color-select").forEach((sel) => {
+    sel.addEventListener("change", (e) => {
+      e.preventDefault();
+      const id = Number(sel.dataset.id);
+      const product = products.find((pr) => pr.id === id);
+      if (!product) return;
+      const variant = getVariant(product, sel.value);
+      const card = sel.closest(".product-card");
+      const frontImg = card.querySelector(".product-img-front");
+      const backImg = card.querySelector(".product-img-back");
+      if (frontImg) frontImg.src = variant.image || product.image;
+      if (backImg) {
+        if (variant.imageBack) {
+          backImg.src = variant.imageBack;
+          backImg.style.display = "";
+        } else {
+          backImg.style.display = "none";
+        }
+      }
+      const priceEl = card.querySelector(".product-price");
+      if (priceEl) priceEl.textContent = "$" + ((variant.price || product.price) / 100).toFixed(2);
+    });
   });
 
   productGrid.querySelectorAll(".product-buy").forEach((btn) => {
@@ -87,6 +135,7 @@ function addToCart(productId, size, color) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
 
+  const variant = getVariant(product, color);
   const key = cartKey(productId, size, color);
   const existing = cart.find((item) => item.key === key);
 
@@ -98,6 +147,8 @@ function addToCart(productId, size, color) {
       key,
       size,
       color,
+      price: variant.price || product.price,
+      image: variant.image || product.image,
       quantity: 1,
     });
   }

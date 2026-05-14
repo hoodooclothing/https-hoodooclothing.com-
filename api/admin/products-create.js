@@ -27,6 +27,7 @@ module.exports = async function handler(req, res) {
       colors: body.colors || ["Black"],
       image: body.image || "",
       imageBack: body.imageBack || "",
+      colorVariants: body.colorVariants || [],
       quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
       active: true,
     };

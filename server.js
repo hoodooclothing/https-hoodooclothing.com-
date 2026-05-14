@@ -312,7 +312,7 @@ app.delete("/api/admin/products-delete", async (req, res) => {
     }
 
     const products = await getProducts();
-    const index = products.findIndex((p) => p.id === id);
+    const index = products.findIndex((p) => p.id === Number(id));
     if (index === -1) {
       return res.status(404).json({ error: "Product not found" });
     }

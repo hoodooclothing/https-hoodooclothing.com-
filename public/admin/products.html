@@ -641,7 +641,7 @@
 
       try {
         var res = await fetch("/api/admin/products-delete", {
-          method: "DELETE",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: id }),
         });

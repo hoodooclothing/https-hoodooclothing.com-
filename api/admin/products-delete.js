@@ -1,7 +1,7 @@
 const { getProducts, saveProducts } = require("../../lib/products-store");
 
 module.exports = async function handler(req, res) {
-  if (req.method !== "DELETE") {
+  if (req.method !== "POST" && req.method !== "DELETE") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 

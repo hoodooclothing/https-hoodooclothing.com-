@@ -304,7 +304,7 @@ app.post("/api/admin/products-create", async (req, res) => {
   }
 });
 
-app.delete("/api/admin/products-delete", async (req, res) => {
+app.post("/api/admin/products-delete", async (req, res) => {
   try {
     const { id } = req.body || {};
     if (!id) {

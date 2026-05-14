@@ -1,0 +1,51 @@
+<header class="hero">
+  <div class="hero-content">
+    <p class="hero-sub">{{ section.settings.subheadline }}</p>
+    <h1 class="hero-title">{{ section.settings.headline }}</h1>
+    <p class="hero-desc">{{ section.settings.description }}</p>
+    <a href="{{ section.settings.button_link }}" class="btn btn-primary">{{ section.settings.button_text }}</a>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "subheadline",
+      "label": "Subheadline",
+      "default": "New Collection"
+    },
+    {
+      "type": "textarea",
+      "id": "headline",
+      "label": "Headline",
+      "default": "Less noise.<br/>More style."
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link",
+      "default": "/collections/all"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner"
+    }
+  ]
+}
+{% endschema %}

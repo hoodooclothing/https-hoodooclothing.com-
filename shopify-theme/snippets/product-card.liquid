@@ -1,0 +1,117 @@
+{% comment %}
+  Product Card Snippet
+  Usage: {% render 'product-card', product: product %}
+{% endcomment %}
+
+<div class="product-card">
+  <a href="{{ product.url }}" class="product-image">
+    {% if product.featured_image %}
+      <img
+        src="{{ product.featured_image | image_url: width: 600 }}"
+        alt="{{ product.featured_image.alt | escape }}"
+        loading="lazy"
+        width="600"
+        height="800"
+      >
+    {% else %}
+      <span>No Image</span>
+    {% endif %}
+  </a>
+  <div class="product-info">
+    <h3 class="product-name">
+      <a href="{{ product.url }}">{{ product.title }}</a>
+    </h3>
+    <p class="product-desc">{{ product.description | strip_html | truncate: 80 }}</p>
+
+    {%- form 'product', product, class: 'noir-product-form' -%}
+      <div class="product-variants">
+        {% if product.options.size > 0 %}
+          {% for option in product.options_with_values %}
+            <div class="variant-group">
+              <label class="variant-label" for="option-{{ product.id }}-{{ option.name | handleize }}">
+                {{ option.name }}
+              </label>
+              <select
+                class="variant-select"
+                id="option-{{ product.id }}-{{ option.name | handleize }}"
+                name="option-{{ option.name | handleize }}"
+                data-product-id="{{ product.id }}"
+                data-option-index="{{ forloop.index0 }}"
+              >
+                {% for value in option.values %}
+                  <option value="{{ value }}">{{ value }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+      <input type="hidden" name="quantity" value="1">
+
+      <div class="product-bottom">
+        <span class="product-price">{{ product.price | money }}</span>
+        <button type="submit" class="product-buy" {% unless product.available %}disabled{% endunless %}>
+          {% if product.available %}
+            Add to Cart
+          {% else %}
+            Sold Out
+          {% endif %}
+        </button>
+      </div>
+    {%- endform -%}
+  </div>
+</div>
+
+<script>
+  // Variant selector logic for product {{ product.id }}
+  (function() {
+    var productJson = {{ product.variants | json }};
+    var productId = '{{ product.id }}';
+    var selects = document.querySelectorAll('[data-product-id="' + productId + '"]');
+
+    selects.forEach(function(select) {
+      select.addEventListener('change', function() {
+        var selectedOptions = [];
+        selects.forEach(function(s) {
+          selectedOptions.push(s.value);
+        });
+
+        // Find matching variant
+        var matchedVariant = productJson.find(function(variant) {
+          return selectedOptions.every(function(opt, idx) {
+            return variant['option' + (idx + 1)] === opt;
+          });
+        });
+
+        if (matchedVariant) {
+          var form = select.closest('.noir-product-form');
+          var idInput = form.querySelector('input[name="id"]');
+          if (idInput) idInput.value = matchedVariant.id;
+
+          // Update price
+          var priceEl = form.querySelector('.product-price');
+          if (priceEl) {
+            priceEl.textContent = (matchedVariant.price / 100).toLocaleString('en-US', {
+              style: 'currency',
+              currency: '{{ shop.currency }}'
+            });
+          }
+
+          // Update button state
+          var btn = form.querySelector('.product-buy');
+          if (btn) {
+            if (matchedVariant.available) {
+              btn.disabled = false;
+              btn.textContent = 'Add to Cart';
+            } else {
+              btn.disabled = true;
+              btn.textContent = 'Sold Out';
+            }
+          }
+        }
+      });
+    });
+  })();
+</script>

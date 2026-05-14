@@ -1,0 +1,40 @@
+<section id="about" class="about-section">
+  <div class="about-inner">
+    <h2 class="section-title">{{ section.settings.heading }}</h2>
+    <p>{{ section.settings.body_text }}</p>
+    {% if section.settings.fulfillment_note != blank %}
+      <p style="margin-top:24px; font-size:0.8rem; color:#666;">{{ section.settings.fulfillment_note }}</p>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "About",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Our Philosophy"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body Text",
+      "default": "<p>We believe great clothing starts with restraint. Every piece in the NOIR collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>"
+    },
+    {
+      "type": "text",
+      "id": "fulfillment_note",
+      "label": "Fulfillment Note",
+      "default": "All garments are manufactured and fulfilled by Tapstitch using premium heavyweight blanks, DTG printing, and custom branding."
+    }
+  ],
+  "presets": [
+    {
+      "name": "About"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,35 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "subheadline": "New Collection",
+        "headline": "Less noise.<br/>More style.",
+        "description": "Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last.",
+        "button_text": "Shop Now",
+        "button_link": "/collections/all"
+      }
+    },
+    "featured-products": {
+      "type": "featured-products",
+      "settings": {
+        "title": "Essentials",
+        "collection": "all",
+        "products_to_show": 6
+      }
+    },
+    "about": {
+      "type": "about",
+      "settings": {
+        "heading": "Our Philosophy",
+        "body_text": "<p>We believe great clothing starts with restraint. Every piece in the NOIR collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>",
+        "fulfillment_note": "All garments are manufactured and fulfilled by Tapstitch using premium heavyweight blanks, DTG printing, and custom branding."
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "featured-products",
+    "about"
+  ]
+}

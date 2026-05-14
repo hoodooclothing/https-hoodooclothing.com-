@@ -1,0 +1,145 @@
+<section class="product-page-section">
+  <div class="product-page-inner">
+    <div class="product-page-gallery">
+      {% if product.featured_image %}
+        <div class="product-page-image">
+          <img
+            src="{{ product.featured_image | image_url: width: 900 }}"
+            alt="{{ product.featured_image.alt | escape }}"
+          >
+        </div>
+      {% endif %}
+      {% if product.images.size > 1 %}
+        <div class="product-page-thumbnails">
+          {% for image in product.images %}
+            <div class="product-thumb {% if forloop.first %}active{% endif %}" data-image-url="{{ image | image_url: width: 900 }}">
+              <img src="{{ image | image_url: width: 150 }}" alt="{{ image.alt | escape }}">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="product-page-details">
+      <h1 class="product-page-title">{{ product.title }}</h1>
+      <p class="product-page-price" id="product-price">{{ product.selected_or_first_available_variant.price | money }}</p>
+
+      <div class="product-page-description">
+        {{ product.description }}
+      </div>
+
+      {%- form 'product', product, class: 'noir-product-form product-page-form' -%}
+        {% if product.options.size > 0 %}
+          <div class="product-page-options">
+            {% for option in product.options_with_values %}
+              <div class="variant-group variant-group--page">
+                <label class="variant-label" for="page-option-{{ option.name | handleize }}">
+                  {{ option.name }}
+                </label>
+                <select
+                  class="variant-select"
+                  id="page-option-{{ option.name | handleize }}"
+                  name="option-{{ option.name | handleize }}"
+                  data-option-index="{{ forloop.index0 }}"
+                  data-product-page-select
+                >
+                  {% for value in option.values %}
+                    <option
+                      value="{{ value }}"
+                      {% if product.selected_or_first_available_variant.options[forloop.parentloop.index0] == value %}
+                        selected
+                      {% endif %}
+                    >
+                      {{ value }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" id="product-variant-id">
+        <input type="hidden" name="quantity" value="1">
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-full product-page-add"
+          {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+        >
+          {% if product.selected_or_first_available_variant.available %}
+            Add to Cart
+          {% else %}
+            Sold Out
+          {% endif %}
+        </button>
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+
+<script>
+  (function() {
+    var variants = {{ product.variants | json }};
+    var selects = document.querySelectorAll('[data-product-page-select]');
+    var variantInput = document.getElementById('product-variant-id');
+    var priceEl = document.getElementById('product-price');
+    var addBtn = document.querySelector('.product-page-add');
+    var mainImage = document.querySelector('.product-page-image img');
+
+    selects.forEach(function(select) {
+      select.addEventListener('change', function() {
+        var selectedOptions = [];
+        selects.forEach(function(s) {
+          selectedOptions.push(s.value);
+        });
+
+        var matched = variants.find(function(v) {
+          return selectedOptions.every(function(opt, idx) {
+            return v['option' + (idx + 1)] === opt;
+          });
+        });
+
+        if (matched) {
+          variantInput.value = matched.id;
+          priceEl.textContent = (matched.price / 100).toLocaleString('en-US', {
+            style: 'currency',
+            currency: '{{ shop.currency }}'
+          });
+
+          if (matched.available) {
+            addBtn.disabled = false;
+            addBtn.textContent = 'Add to Cart';
+          } else {
+            addBtn.disabled = true;
+            addBtn.textContent = 'Sold Out';
+          }
+
+          // Update image if variant has image
+          if (matched.featured_image && mainImage) {
+            mainImage.src = matched.featured_image.src;
+          }
+        }
+      });
+    });
+
+    // Thumbnail click
+    var thumbs = document.querySelectorAll('.product-thumb');
+    thumbs.forEach(function(thumb) {
+      thumb.addEventListener('click', function() {
+        thumbs.forEach(function(t) { t.classList.remove('active'); });
+        thumb.classList.add('active');
+        if (mainImage) {
+          mainImage.src = thumb.dataset.imageUrl;
+        }
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product Page",
+  "settings": []
+}
+{% endschema %}

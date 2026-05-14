@@ -6,6 +6,8 @@
     { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
     { "source": "/admin/orders", "destination": "/api/admin/orders" },
     { "source": "/admin/stats", "destination": "/api/admin/stats" },
+    { "source": "/admin/send-code", "destination": "/api/admin/send-code" },
+    { "source": "/admin/verify-code", "destination": "/api/admin/verify-code" },
     { "source": "/admin/analytics", "destination": "/admin/analytics.html" }
   ]
 }

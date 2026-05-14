@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page_title }} &mdash; {{ shop.name }}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  {{ 'noir-theme.css' | asset_url | stylesheet_tag }}
+
+  {{ content_for_header }}
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        {% if settings.logo != blank %}
+          <img src="{{ settings.logo | image_url: width: 120 }}" alt="{{ shop.name }}" style="height: 24px; width: auto;">
+        {% else %}
+          {{ shop.name }}
+        {% endif %}
+      </a>
+      <ul class="nav-links">
+        <li><a href="/collections/all">Shop</a></li>
+        <li><a href="/pages/about">About</a></li>
+        <li>
+          <a href="/cart" class="cart-btn" id="cart-btn">
+            Cart (<span id="cart-count">{{ cart.item_count }}</span>)
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Cart Drawer -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      {% if cart.item_count == 0 %}
+        <p class="cart-empty">Your cart is empty.</p>
+      {% else %}
+        {% for item in cart.items %}
+          <div class="cart-item" data-line="{{ forloop.index }}">
+            <div class="cart-item-image">
+              {% if item.image %}
+                <img src="{{ item.image | image_url: width: 128 }}" alt="{{ item.title }}">
+              {% endif %}
+            </div>
+            <div class="cart-item-details">
+              <div class="cart-item-name">{{ item.product.title }} {% if item.quantity > 1 %}x{{ item.quantity }}{% endif %}</div>
+              <div class="cart-item-variant">{{ item.variant.title }}</div>
+              <div class="cart-item-price">{{ item.line_price | money }}</div>
+              <button class="cart-item-remove" data-line="{{ forloop.index }}">Remove</button>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="cart-footer" id="cart-footer" {% if cart.item_count == 0 %}style="display:none;"{% endif %}>
+      <div class="cart-total">
+        <span>Total:</span>
+        <span id="cart-total">{{ cart.total_price | money }}</span>
+      </div>
+      <a href="/checkout" class="btn btn-primary btn-full">Checkout</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content" role="main">
+    {{ content_for_layout }}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; {{ 'now' | date: "%Y" }} {{ shop.name }}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Cart Drawer Toggle
+    const cartBtn = document.getElementById('cart-btn');
+    const cartDrawer = document.getElementById('cart-drawer');
+    const cartOverlay = document.getElementById('cart-overlay');
+    const cartClose = document.getElementById('cart-close');
+
+    function openCart(e) {
+      if (e) e.preventDefault();
+      cartDrawer.classList.add('open');
+      cartOverlay.classList.add('open');
+    }
+
+    function closeCart() {
+      cartDrawer.classList.remove('open');
+      cartOverlay.classList.remove('open');
+    }
+
+    if (cartBtn) cartBtn.addEventListener('click', openCart);
+    if (cartClose) cartClose.addEventListener('click', closeCart);
+    if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
+
+    // AJAX Cart Remove
+    document.querySelectorAll('.cart-item-remove').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var line = this.dataset.line;
+        fetch('/cart/change.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line: parseInt(line), quantity: 0 })
+        }).then(function() {
+          window.location.reload();
+        });
+      });
+    });
+
+    // AJAX Add to Cart (used by product forms)
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      if (!form.classList.contains('noir-product-form')) return;
+      e.preventDefault();
+
+      var formData = new FormData(form);
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        // Update cart count
+        fetch('/cart.js')
+          .then(function(res) { return res.json(); })
+          .then(function(cart) {
+            var countEl = document.getElementById('cart-count');
+            if (countEl) countEl.textContent = cart.item_count;
+            openCart();
+            // Reload drawer contents
+            window.location.reload();
+          });
+      })
+      .catch(function(err) {
+        console.error('Add to cart error:', err);
+      });
+    });
+  </script>
+</body>
+</html>

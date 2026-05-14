@@ -64,7 +64,6 @@
     <div class="about-inner">
       <h2 class="section-title">Our Philosophy</h2>
       <p>We believe great clothing starts with restraint. Every piece in the Hoodoo collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>
-      <p style="margin-top:24px; font-size:0.8rem; color:#666;">All garments are manufactured and fulfilled by Tapstitch using premium heavyweight blanks, DTG printing, and custom branding.</p>
     </div>
   </section>
 
@@ -89,9 +88,197 @@
   <!-- Footer -->
   <footer class="footer">
     <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+    <a href="#" id="admin-gate-link" style="font-size:0.55rem;color:#333;text-decoration:none;margin-top:8px;display:inline-block;">Manage</a>
   </footer>
+
+  <!-- Admin Gate Modal -->
+  <div id="admin-gate" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:#111;border:1px solid #222;border-radius:8px;padding:32px;max-width:360px;width:90%;text-align:center;">
+      <h3 style="font-size:1rem;font-weight:400;margin-bottom:16px;">Admin Access</h3>
+      <!-- Step 1: Email -->
+      <div id="step-email">
+        <input type="email" id="admin-email" placeholder="Enter admin email" style="width:100%;padding:10px 14px;font-size:0.85rem;font-family:inherit;color:#fff;background:#0a0a0a;border:1px solid #333;border-radius:6px;margin-bottom:12px;box-sizing:border-box;" />
+        <button id="admin-send" class="btn btn-primary" style="width:100%;padding:10px;">Send Code</button>
+      </div>
+      <!-- Step 2: Code -->
+      <div id="step-code" style="display:none;">
+        <p style="color:#888;font-size:0.8rem;margin-bottom:16px;">Enter the 6-digit code sent to your email.</p>
+        <input type="text" id="admin-code" placeholder="000000" maxlength="6" style="width:100%;padding:12px 14px;font-size:1.4rem;font-family:monospace;letter-spacing:8px;text-align:center;color:#fff;background:#0a0a0a;border:1px solid #333;border-radius:6px;margin-bottom:12px;box-sizing:border-box;" />
+        <button id="admin-verify" class="btn btn-primary" style="width:100%;padding:10px;">Verify</button>
+        <button id="admin-resend" style="background:none;border:none;color:#666;font-size:0.7rem;margin-top:10px;cursor:pointer;">Resend code</button>
+      </div>
+      <p id="admin-error" style="color:#ff4444;font-size:0.75rem;margin-top:12px;display:none;"></p>
+      <p id="admin-success" style="color:#4caf50;font-size:0.75rem;margin-top:8px;display:none;"></p>
+      <button id="admin-cancel" style="background:none;border:none;color:#666;font-size:0.75rem;margin-top:12px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
 
   <script src="analytics.js"></script>
   <script src="script.js"></script>
+  <script>
+    (function() {
+      var gate = document.getElementById("admin-gate");
+      var link = document.getElementById("admin-gate-link");
+      var stepEmail = document.getElementById("step-email");
+      var stepCode = document.getElementById("step-code");
+      var emailInput = document.getElementById("admin-email");
+      var codeInput = document.getElementById("admin-code");
+      var sendBtn = document.getElementById("admin-send");
+      var verifyBtn = document.getElementById("admin-verify");
+      var resendBtn = document.getElementById("admin-resend");
+      var cancelBtn = document.getElementById("admin-cancel");
+      var errorMsg = document.getElementById("admin-error");
+      var successMsg = document.getElementById("admin-success");
+
+      var pendingEmail = "";
+      var pendingToken = "";
+
+      function getCookie(name) {
+        var match = document.cookie.split("; ").find(function(c) { return c.startsWith(name + "="); });
+        return match ? decodeURIComponent(match.split("=")[1]) : null;
+      }
+
+      function setCookie(name, val, days) {
+        var d = new Date();
+        d.setTime(d.getTime() + days * 86400000);
+        document.cookie = name + "=" + encodeURIComponent(val) + ";expires=" + d.toUTCString() + ";path=/;SameSite=Lax";
+      }
+
+      function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.style.display = "block";
+        successMsg.style.display = "none";
+      }
+
+      function showSuccess(msg) {
+        successMsg.textContent = msg;
+        successMsg.style.display = "block";
+        errorMsg.style.display = "none";
+      }
+
+      function hideMessages() {
+        errorMsg.style.display = "none";
+        successMsg.style.display = "none";
+      }
+
+      function resetModal() {
+        stepEmail.style.display = "block";
+        stepCode.style.display = "none";
+        emailInput.value = "";
+        codeInput.value = "";
+        pendingEmail = "";
+        pendingToken = "";
+        hideMessages();
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send Code";
+      }
+
+      // Click "Manage" link
+      link.addEventListener("click", function(e) {
+        e.preventDefault();
+        var saved = getCookie("hoodoo_admin");
+        if (saved) {
+          window.location.href = "/admin/index.html";
+          return;
+        }
+        resetModal();
+        gate.style.display = "flex";
+        emailInput.focus();
+      });
+
+      // Send code
+      async function sendCode() {
+        var email = emailInput.value.trim().toLowerCase();
+        if (!email) return;
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Sending...";
+        hideMessages();
+
+        try {
+          var res = await fetch("/admin/send-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email }),
+          });
+          var data = await res.json();
+          if (data.error) {
+            showError(data.error);
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send Code";
+            return;
+          }
+          pendingEmail = email;
+          pendingToken = data.token || "";
+          stepEmail.style.display = "none";
+          stepCode.style.display = "block";
+          showSuccess("Code sent! Check your email.");
+          codeInput.focus();
+        } catch (err) {
+          showError("Failed to send code. Try again.");
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Send Code";
+        }
+      }
+
+      sendBtn.addEventListener("click", sendCode);
+      emailInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") sendCode();
+      });
+
+      // Verify code
+      async function verifyCode() {
+        var code = codeInput.value.trim();
+        if (code.length !== 6) {
+          showError("Enter the 6-digit code.");
+          return;
+        }
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = "Verifying...";
+        hideMessages();
+
+        try {
+          var res = await fetch("/admin/verify-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: pendingEmail, code: code, token: pendingToken }),
+          });
+          var data = await res.json();
+          if (data.verified) {
+            setCookie("hoodoo_admin", pendingEmail, 30);
+            window.location.href = "/admin/index.html";
+          } else {
+            showError(data.error || "Invalid code.");
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = "Verify";
+          }
+        } catch (err) {
+          showError("Verification failed. Try again.");
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = "Verify";
+        }
+      }
+
+      verifyBtn.addEventListener("click", verifyCode);
+      codeInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") verifyCode();
+      });
+
+      // Resend
+      resendBtn.addEventListener("click", function() {
+        stepEmail.style.display = "block";
+        stepCode.style.display = "none";
+        hideMessages();
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send Code";
+        emailInput.focus();
+      });
+
+      // Cancel
+      cancelBtn.addEventListener("click", function() {
+        gate.style.display = "none";
+        resetModal();
+      });
+    })();
+  </script>
 </body>
 </html>

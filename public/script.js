@@ -50,7 +50,6 @@ function renderProducts() {
           </div>
           <div class="product-bottom">
             <span class="product-price">$${(p.price / 100).toFixed(2)}</span>
-            <span class="free-shipping-badge">Free Shipping</span>
             <button class="product-buy" data-id="${p.id}">Add to Cart</button>
           </div>
         </div>

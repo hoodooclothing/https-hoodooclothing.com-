@@ -55,6 +55,30 @@ module.exports = async (req, res) => {
           "US", "CA", "GB", "AU", "DE", "FR", "NL", "SE", "DK", "NO", "JP",
         ],
       },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 700, currency: "usd" },
+            display_name: "Standard Shipping",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 7 },
+              maximum: { unit: "business_day", value: 10 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 1800, currency: "usd" },
+            display_name: "Express Shipping",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 2 },
+              maximum: { unit: "business_day", value: 4 },
+            },
+          },
+        },
+      ],
       metadata: {
         tapstitch_items: JSON.stringify(tapstitchItems),
       },

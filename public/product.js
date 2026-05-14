@@ -72,8 +72,6 @@ function renderProductDetail() {
         <h1 class="pdp-title">${product.name}</h1>
         <p class="pdp-price">$${(product.price / 100).toFixed(2)}</p>
         <p class="pdp-description">${product.description}</p>
-        <span class="free-shipping-badge">Free Shipping</span>
-
         <div class="pdp-variants">
           <div class="pdp-variant-group">
             <label class="variant-label">Size</label>

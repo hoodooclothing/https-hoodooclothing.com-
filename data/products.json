@@ -42,5 +42,28 @@
     "image": "build-different-front.webp",
     "quantity": -1,
     "active": true
+  },
+  {
+    "id": 9,
+    "name": "Contrast Collar Short-Sleeve Polo Shirt Hoodoo",
+    "description": "Contrast white collar and stripe detailing, relaxed boxy fit, embroidered logo",
+    "productType": "polo",
+    "tapstitchProductId": "",
+    "printMethod": "embroidery",
+    "price": 4500,
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "colors": ["Navy Blue"],
+    "image": "polo-navy-front.png",
+    "imageBack": "polo-navy-back.png",
+    "colorVariants": [
+      {
+        "color": "Navy Blue",
+        "image": "polo-navy-front.png",
+        "imageBack": "polo-navy-back.png",
+        "price": 4500
+      }
+    ],
+    "quantity": -1,
+    "active": true
   }
 ]

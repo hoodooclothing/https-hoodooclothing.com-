@@ -3994,3 +3994,282 @@ body::after {
 
   .newsletter-inner::before { display: none; }
 }
+
+/* ══════════════════════════════════════
+   v5.0 — Cinematic Experience
+   ══════════════════════════════════════ */
+
+/* ── Page Intro Curtain ── */
+.page-intro {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.page-intro.done {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.intro-logo {
+  animation: introLogoIn 0.8s 0.2s var(--ease-out-expo) both;
+}
+
+.intro-logo .hd-pre,
+.intro-logo .hd-post {
+  font-size: 36px !important;
+}
+
+.intro-logo .hd-vesica {
+  width: 56px !important;
+  height: 32px !important;
+}
+
+.intro-logo .hd-ring {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.intro-logo .hd-lens {
+  width: 12px !important;
+  height: 22px !important;
+}
+
+@keyframes introLogoIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Scroll Progress Bar ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 100002;
+  width: 0%;
+  pointer-events: none;
+}
+
+/* ── Custom Cursor (desktop) ── */
+.cursor-dot, .cursor-ring {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100001;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+body:hover .cursor-dot,
+body:hover .cursor-ring {
+  opacity: 1;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+.cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(233,69,96,0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.25s var(--ease-out-expo), height 0.25s var(--ease-out-expo), border-color 0.25s, opacity 0.3s;
+}
+
+.cursor-ring.hovering {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(233,69,96,0.6);
+}
+
+/* Hide custom cursor on touch devices */
+@media (hover: none), (max-width: 768px) {
+  .cursor-dot, .cursor-ring { display: none !important; }
+}
+
+/* Use default cursor since we have custom one */
+@media (hover: hover) and (min-width: 769px) {
+  *, *::before, *::after { cursor: none !important; }
+}
+
+/* ── Hero: Animated Gradient Background ── */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 25% 50%, rgba(233,69,96,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 75% 40%, rgba(139,92,246,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 50% 80%, rgba(249,115,22,0.03) 0%, transparent 70%);
+  animation: heroAmbient 12s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes heroAmbient {
+  0% {
+    opacity: 0.5;
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(20px);
+  }
+  100% {
+    opacity: 0.7;
+    filter: blur(0px);
+  }
+}
+
+/* Hero glow: bigger and more vibrant */
+.hero-glow {
+  width: 1100px !important;
+  height: 1100px !important;
+  background: radial-gradient(circle, rgba(233,69,96,0.1) 0%, rgba(139,92,246,0.05) 35%, transparent 55%) !important;
+  filter: blur(40px);
+}
+
+/* Hero accent line */
+.hero-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -56px;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent 20%, var(--accent) 50%, transparent 80%);
+  opacity: 0.12;
+  z-index: 1;
+}
+
+/* Hero: bigger title */
+.hero-title {
+  font-size: clamp(3.8rem, 11vw, 9rem) !important;
+  line-height: 0.88 !important;
+  letter-spacing: -0.05em !important;
+}
+
+/* Hero accent word: color pulse */
+.hero-accent {
+  position: relative;
+}
+
+.hero-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 0.05em;
+  left: -0.05em;
+  right: -0.05em;
+  height: 0.35em;
+  background: rgba(233,69,96,0.08);
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: accentReveal 0.8s 1.8s var(--ease-out-expo) forwards;
+}
+
+@keyframes accentReveal {
+  to { transform: scaleX(1); }
+}
+
+/* ── Horizontal rule divider between hero and content ── */
+.marquee-strip::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
+  opacity: 0.1;
+}
+
+/* ── Statement banner: add decorative dashes ── */
+.statement-text::before {
+  content: '\2014\2003';
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+.statement-text::after {
+  content: '\2003\2014';
+  color: var(--accent);
+  opacity: 0.4;
+}
+
+/* ── Product grid: larger gap, cleaner ── */
+.product-grid {
+  gap: 20px !important;
+}
+
+.product-info {
+  padding: 16px 20px 20px !important;
+}
+
+/* Product card: category label */
+.product-card .product-desc {
+  font-size: 0.7rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ── About: accent number highlight ── */
+.about-stat-num {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 1.6rem !important;
+  font-weight: 400 !important;
+  font-style: italic;
+}
+
+/* ── Footer: more breathing room ── */
+.footer-rich {
+  padding: 80px 24px 0 !important;
+}
+
+.footer-inner {
+  gap: 56px !important;
+  padding-bottom: 56px !important;
+}
+
+.footer-brand p {
+  margin-top: 20px !important;
+  line-height: 1.8 !important;
+}
+
+/* ── Smooth section color transitions ── */
+.about-section {
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(20,12,15,1) 50%, var(--bg) 100%) !important;
+}
+
+.newsletter-section {
+  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(18,14,22,1) 50%, var(--bg-card) 100%) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .hero-title { font-size: clamp(2.8rem, 12vw, 5rem) !important; }
+  .hero-content::before { display: none; }
+  .hero-glow { width: 600px !important; height: 600px !important; }
+  .page-intro .intro-logo .hd-pre,
+  .page-intro .intro-logo .hd-post { font-size: 28px !important; }
+}
+
+@media (max-width: 560px) {
+  .hero-title { font-size: clamp(2.4rem, 14vw, 3.5rem) !important; }
+  .hero-glow { width: 400px !important; height: 400px !important; filter: blur(30px); }
+}

@@ -868,3 +868,81 @@ init();
     lines.forEach(function(el) { el.style.opacity = fade; });
   }, { passive: true });
 })();
+
+// ══════════════════════════════════════
+// v5.0 — Cinematic Experience
+// ══════════════════════════════════════
+
+// Page intro curtain
+(function() {
+  var intro = document.getElementById('page-intro');
+  if (!intro) return;
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      intro.classList.add('done');
+    }, 1400);
+    setTimeout(function() {
+      intro.style.display = 'none';
+    }, 2500);
+  });
+})();
+
+// Scroll progress bar
+(function() {
+  var bar = document.getElementById('scroll-progress');
+  if (!bar) return;
+  window.addEventListener('scroll', function() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    if (h <= 0) return;
+    bar.style.width = ((window.scrollY / h) * 100).toFixed(1) + '%';
+  }, { passive: true });
+})();
+
+// Custom cursor
+(function() {
+  if (window.innerWidth < 769 || !matchMedia('(hover: hover)').matches) return;
+  var dot = document.getElementById('cursor-dot');
+  var ring = document.getElementById('cursor-ring');
+  if (!dot || !ring) return;
+
+  var mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', function(e) {
+    mx = e.clientX;
+    my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top = my + 'px';
+  }, { passive: true });
+
+  (function loop() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx.toFixed(1) + 'px';
+    ring.style.top = ry.toFixed(1) + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // Expand ring on hoverable elements
+  var hoverTargets = 'a, button, .product-card, .btn-hero, input, .filter-tab, .sort-select';
+  document.addEventListener('mouseover', function(e) {
+    if (e.target.closest(hoverTargets)) ring.classList.add('hovering');
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (e.target.closest(hoverTargets)) ring.classList.remove('hovering');
+  });
+})();
+
+// Hero content parallax on scroll (subtle lift)
+(function() {
+  var content = document.querySelector('.hero-content');
+  var hero = document.querySelector('.hero');
+  if (!content || !hero) return;
+  window.addEventListener('scroll', function() {
+    var y = window.scrollY;
+    var h = hero.offsetHeight;
+    if (y > h) return;
+    var progress = y / h;
+    content.style.transform = 'translateY(' + (y * 0.25).toFixed(1) + 'px)';
+    content.style.opacity = (1 - progress * 0.8).toFixed(2);
+  }, { passive: true });
+})();

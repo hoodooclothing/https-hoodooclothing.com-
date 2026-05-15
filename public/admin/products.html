@@ -67,6 +67,10 @@
       opacity: 0.7;
     }
 
+    .row-low-stock {
+      border-left: 3px solid #f0a050;
+    }
+
     .status-badge {
       font-size: 0.7rem;
       padding: 2px 8px;
@@ -652,21 +656,16 @@
         <small>Admin Panel</small>
       </div>
       <nav class="sidebar-nav">
-        <a href="/admin/index.html">
-          <span class="nav-icon">&#9632;</span> Dashboard
-        </a>
-        <a href="/admin/orders.html">
-          <span class="nav-icon">&#9776;</span> Orders
-        </a>
-        <a href="/admin/products.html" class="active">
-          <span class="nav-icon">&#9830;</span> Products
-        </a>
-        <a href="/admin/analytics.html">
-          <span class="nav-icon">&#9670;</span> Analytics
-        </a>
+        <a href="/admin/index.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+        <a href="/admin/orders.html"><span class="nav-icon">&#9776;</span> Orders</a>
+        <a href="/admin/products.html" class="active"><span class="nav-icon">&#9830;</span> Products</a>
+        <a href="/admin/customers.html"><span class="nav-icon">&#9823;</span> Customers</a>
+        <a href="/admin/analytics.html"><span class="nav-icon">&#9670;</span> Analytics</a>
+        <a href="/admin/settings.html"><span class="nav-icon">&#9881;</span> Settings</a>
       </nav>
       <div class="sidebar-footer">
         <a href="/">&larr; Back to Storefront</a>
+        <br><a href="#" onclick="logout(); return false;" style="margin-top:8px; display:inline-block;">Logout</a>
       </div>
     </aside>
 
@@ -788,10 +787,35 @@
           <input type="text" id="form-tapstitch" />
         </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-sku">SKU</label>
+            <input type="text" id="form-sku" placeholder="e.g. HD-TEE-BLK-001" />
+            <small>Unique product identifier</small>
+          </div>
+          <div class="form-group">
+            <label for="form-tags">Tags</label>
+            <input type="text" id="form-tags" placeholder="e.g. summer, new, sale" />
+            <small>Comma-separated</small>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="form-sizes">Sizes</label>
           <input type="text" id="form-sizes" placeholder="S, M, L, XL, XXL" />
           <small>Comma-separated</small>
+        </div>
+
+        <div class="form-group">
+          <label for="form-seo-title">SEO Title</label>
+          <input type="text" id="form-seo-title" placeholder="Page title for search engines" />
+          <small>Appears in browser tab and search results</small>
+        </div>
+
+        <div class="form-group">
+          <label for="form-seo-description">SEO Description</label>
+          <textarea id="form-seo-description" rows="2" placeholder="Meta description for search engines"></textarea>
+          <small>Recommended 150-160 characters</small>
         </div>
 
         <!-- Color Variants Section -->
@@ -1023,7 +1047,7 @@
     // ── Export CSV ──
     document.getElementById('export-btn').addEventListener('click', function () {
       if (!allProducts || allProducts.length === 0) { showToast('No products to export', true); return; }
-      var headers = ['ID','Name','Description','Type','Print Method','Price','Sizes','Colors','Image','Image Back','Quantity','Active','Tapstitch ID'];
+      var headers = ['ID','Name','Description','Type','Print Method','Price','Sizes','Colors','Image','Image Back','Quantity','Active','Tapstitch ID','SKU','Tags','SEO Title','SEO Description'];
       var rows = allProducts.map(function (p) {
         return [
           p.id,
@@ -1039,6 +1063,10 @@
           p.quantity,
           p.active !== false ? 'true' : 'false',
           p.tapstitchProductId || '',
+          '"' + (p.sku || '').replace(/"/g, '""') + '"',
+          '"' + (p.tags || []).join(', ') + '"',
+          '"' + (p.seoTitle || '').replace(/"/g, '""') + '"',
+          '"' + (p.seoDescription || '').replace(/"/g, '""') + '"',
         ].join(',');
       });
       var csv = headers.join(',') + '\n' + rows.join('\n');
@@ -1139,6 +1167,10 @@
         imageBack: p.imageBack || '',
         colorVariants: p.colorVariants || [],
         quantity: p.quantity !== undefined ? p.quantity : -1,
+        sku: '',
+        tags: p.tags || [],
+        seoTitle: p.seoTitle || '',
+        seoDescription: p.seoDescription || '',
       };
 
       try {
@@ -1208,7 +1240,10 @@
           priceDisplay = formatCurrency(p.price);
         }
 
-        var rowClass = isActive ? '' : ' class="row-off-sale"';
+        var isLowStock = p.quantity > 0 && p.quantity <= 10;
+        var rowClass = '';
+        if (!isActive) rowClass = ' class="row-off-sale"';
+        else if (isLowStock) rowClass = ' class="row-low-stock"';
         var checked = selectedIds.has(p.id) ? ' checked' : '';
 
         return '<tr' + rowClass + '>' +
@@ -1500,7 +1535,11 @@
       document.getElementById("form-type").value = p.productType || "tee";
       document.getElementById("form-print").value = p.printMethod || "dtg";
       document.getElementById("form-tapstitch").value = p.tapstitchProductId || "";
+      document.getElementById("form-sku").value = p.sku || "";
+      document.getElementById("form-tags").value = (p.tags || []).join(", ");
       document.getElementById("form-sizes").value = (p.sizes || []).join(", ");
+      document.getElementById("form-seo-title").value = p.seoTitle || "";
+      document.getElementById("form-seo-description").value = p.seoDescription || "";
 
       // Populate variant rows
       clearVariantRows();
@@ -1527,7 +1566,11 @@
       productForm.reset();
       document.getElementById("form-id").value = "";
       document.getElementById("form-quantity").value = -1;
+      document.getElementById("form-sku").value = "";
+      document.getElementById("form-tags").value = "";
       document.getElementById("form-sizes").value = "S, M, L, XL, XXL";
+      document.getElementById("form-seo-title").value = "";
+      document.getElementById("form-seo-description").value = "";
       clearVariantRows();
       createVariantRow({ color: "Black", price: 0 });
       openModal();
@@ -1576,6 +1619,7 @@
       // Derive flat fields from first variant for backwards compatibility
       var firstVariant = colorVariants[0] || {};
 
+      var tagsRaw = document.getElementById("form-tags").value;
       var data = {
         name: document.getElementById("form-name").value.trim(),
         description: document.getElementById("form-description").value.trim(),
@@ -1584,6 +1628,10 @@
         productType: document.getElementById("form-type").value,
         printMethod: document.getElementById("form-print").value,
         tapstitchProductId: document.getElementById("form-tapstitch").value.trim(),
+        sku: document.getElementById("form-sku").value.trim(),
+        tags: tagsRaw.split(",").map(function (s) { return s.trim(); }).filter(Boolean),
+        seoTitle: document.getElementById("form-seo-title").value.trim(),
+        seoDescription: document.getElementById("form-seo-description").value.trim(),
         sizes: sizesRaw.split(",").map(function (s) { return s.trim(); }).filter(Boolean),
         colors: colorVariants.map(function (v) { return v.color; }),
         image: firstVariant.image || "",

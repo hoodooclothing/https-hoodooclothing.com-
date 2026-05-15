@@ -10,14 +10,112 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="admin.css" />
+  <style>
+    .metric-change {
+      font-size: 0.7rem;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    .metric-change.positive { color: #50c080; }
+    .metric-change.negative { color: #e55; }
+    .metric-change.neutral { color: var(--text-muted); }
+
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .quick-action-btn {
+      padding: 12px 20px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--text);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .quick-action-btn:hover {
+      border-color: var(--text-muted);
+      background: var(--bg-hover);
+    }
+
+    .low-stock-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .low-stock-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #f0a050;
+      margin-bottom: 16px;
+    }
+    .low-stock-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .low-stock-item:last-child { border-bottom: none; }
+    .low-stock-qty {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+      background: #3a2a1a;
+      color: #f0a050;
+    }
+
+    .activity-feed {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .activity-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-time {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Shipping Banner (keeps consistent spacing) -->
   <div class="shipping-banner">HOODOO Admin</div>
 
   <div class="admin-layout">
-    <!-- Sidebar -->
     <aside class="admin-sidebar">
       <div class="sidebar-logo">
         <span class="hoodoo-mark" style="font-size:0.8em;">
@@ -32,25 +130,19 @@
         <small>Admin Panel</small>
       </div>
       <nav class="sidebar-nav">
-        <a href="/admin/index.html" class="active">
-          <span class="nav-icon">&#9632;</span> Dashboard
-        </a>
-        <a href="/admin/orders.html">
-          <span class="nav-icon">&#9776;</span> Orders
-        </a>
-        <a href="/admin/products.html">
-          <span class="nav-icon">&#9830;</span> Products
-        </a>
-        <a href="/admin/analytics.html">
-          <span class="nav-icon">&#9670;</span> Analytics
-        </a>
+        <a href="/admin/index.html" class="active"><span class="nav-icon">&#9632;</span> Dashboard</a>
+        <a href="/admin/orders.html"><span class="nav-icon">&#9776;</span> Orders</a>
+        <a href="/admin/products.html"><span class="nav-icon">&#9830;</span> Products</a>
+        <a href="/admin/customers.html"><span class="nav-icon">&#9823;</span> Customers</a>
+        <a href="/admin/analytics.html"><span class="nav-icon">&#9670;</span> Analytics</a>
+        <a href="/admin/settings.html"><span class="nav-icon">&#9881;</span> Settings</a>
       </nav>
       <div class="sidebar-footer">
         <a href="/">&larr; Back to Storefront</a>
+        <br><a href="#" onclick="logout(); return false;" style="margin-top:8px; display:inline-block;">Logout</a>
       </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="admin-main">
       <div class="admin-page-header">
         <h1>Dashboard</h1>
@@ -59,24 +151,43 @@
         </div>
       </div>
 
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a href="/admin/products.html" class="quick-action-btn">+ Add Product</a>
+        <a href="/admin/orders.html" class="quick-action-btn">View Orders</a>
+        <a href="/admin/customers.html" class="quick-action-btn">View Customers</a>
+        <a href="/" target="_blank" class="quick-action-btn">View Store</a>
+        <a href="/admin/settings.html" class="quick-action-btn">Settings</a>
+      </div>
+
       <!-- Metric Cards -->
       <div class="metrics-grid" id="metrics-grid">
         <div class="metric-card">
           <div class="metric-label">Total Revenue</div>
           <div class="metric-value" id="metric-revenue">$0.00</div>
+          <div class="metric-change neutral" id="metric-revenue-change"></div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Total Orders</div>
           <div class="metric-value" id="metric-orders">0</div>
+          <div class="metric-change neutral" id="metric-orders-change"></div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Avg Order Value</div>
           <div class="metric-value" id="metric-aov">$0.00</div>
+          <div class="metric-change neutral" id="metric-aov-change"></div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Items Sold</div>
           <div class="metric-value" id="metric-items">0</div>
+          <div class="metric-change neutral" id="metric-items-change"></div>
         </div>
+      </div>
+
+      <!-- Low Stock Alerts -->
+      <div class="low-stock-panel" id="low-stock-panel" style="display:none;">
+        <div class="low-stock-title">Low Stock Alerts</div>
+        <div id="low-stock-items"></div>
       </div>
 
       <!-- Revenue Chart with Range Toggle -->
@@ -103,6 +214,12 @@
           <div class="chart-title">Order Status</div>
           <div id="dash-order-status"><p class="admin-loading">Loading...</p></div>
         </div>
+      </div>
+
+      <!-- Recent Activity Feed -->
+      <div class="activity-feed" id="activity-feed" style="display:none;">
+        <div class="activity-title">Recent Activity</div>
+        <div id="activity-items"></div>
       </div>
 
       <!-- Recent Orders -->
@@ -150,9 +267,28 @@
       });
     });
 
+    function renderChangeIndicator(elementId, pctChange) {
+      var el = document.getElementById(elementId);
+      if (!el) return;
+      if (pctChange === 0 || pctChange === undefined || pctChange === null) {
+        el.textContent = "No change";
+        el.className = "metric-change neutral";
+      } else if (pctChange > 0) {
+        el.textContent = "+" + pctChange + "% vs prev period";
+        el.className = "metric-change positive";
+      } else {
+        el.textContent = pctChange + "% vs prev period";
+        el.className = "metric-change negative";
+      }
+    }
+
     async function loadDashboard() {
-      // Fetch stats and orders in parallel
-      const [stats, orders] = await Promise.all([fetchStats(currentRange), fetchOrders()]);
+      // Fetch stats, orders, and products in parallel
+      var [stats, orders, products] = await Promise.all([
+        fetchStats(currentRange),
+        fetchOrders(),
+        fetch("/api/admin/products").then(function (r) { return r.json(); }).catch(function () { return []; }),
+      ]);
 
       // Render metrics
       if (stats) {
@@ -160,6 +296,14 @@
         metricOrders.textContent = stats.totalOrders || 0;
         metricAov.textContent = formatCurrency(stats.avgOrderValue || 0);
         metricItems.textContent = stats.itemsSold || 0;
+
+        // Period comparison
+        if (stats.previousPeriod) {
+          renderChangeIndicator("metric-revenue-change", stats.previousPeriod.revenueChange);
+          renderChangeIndicator("metric-orders-change", stats.previousPeriod.ordersChange);
+          renderChangeIndicator("metric-aov-change", stats.previousPeriod.aovChange);
+          renderChangeIndicator("metric-items-change", stats.previousPeriod.itemsChange);
+        }
 
         // Render chart
         renderBarChart(revenueChart, stats.dailyRevenue || []);
@@ -191,25 +335,61 @@
         revenueChart.innerHTML = '<p class="admin-empty">Could not load chart data</p>';
       }
 
+      // Low Stock Alerts
+      var lowStockPanel = document.getElementById("low-stock-panel");
+      var lowStockItems = document.getElementById("low-stock-items");
+      var threshold = 10; // default
+      try {
+        var settingsRes = await fetch("/api/admin/settings");
+        var settings = await settingsRes.json();
+        threshold = settings.lowStockThreshold || 10;
+      } catch (e) {}
+
+      var lowProducts = (products || []).filter(function (p) {
+        return p.quantity > 0 && p.quantity <= threshold && p.active !== false;
+      });
+
+      if (lowProducts.length > 0) {
+        lowStockPanel.style.display = "block";
+        lowStockItems.innerHTML = lowProducts.map(function (p) {
+          return '<div class="low-stock-item"><span>' + p.name + '</span><span class="low-stock-qty">' + p.quantity + ' left</span></div>';
+        }).join("");
+      } else {
+        lowStockPanel.style.display = "none";
+      }
+
+      // Recent Activity Feed
+      var activityFeed = document.getElementById("activity-feed");
+      var activityItems = document.getElementById("activity-items");
+      if (orders && orders.length > 0) {
+        activityFeed.style.display = "block";
+        var activities = orders.slice(0, 10).map(function (o) {
+          return {
+            text: "Order " + o.id.slice(0, 16) + "... placed by " + (o.customer?.name || o.customer?.email || "Unknown"),
+            time: o.createdAt,
+          };
+        });
+        activityItems.innerHTML = activities.map(function (a) {
+          return '<div class="activity-item"><span>' + a.text + '</span><span class="activity-time">' + formatDateTime(a.time) + '</span></div>';
+        }).join("");
+      } else {
+        activityFeed.style.display = "none";
+      }
+
       // Render recent orders (top 5)
       if (orders && orders.length > 0) {
-        const recent = orders.slice(0, 5);
-        recentOrders.innerHTML = recent
-          .map(
-            (o) => `
-          <tr>
-            <td style="font-family:monospace; font-size:0.75rem;">${o.id.slice(0, 20)}...</td>
-            <td>${o.customer?.name || o.customer?.email || "N/A"}</td>
-            <td><span class="badge ${STATUS_BADGES[o.status] || "badge-pending"}">${STATUS_LABELS[o.status] || o.status}</span></td>
-            <td>${formatCurrency(o.amountTotal || 0)}</td>
-            <td style="color:var(--text-muted); font-size:0.8rem;">${formatDate(o.createdAt)}</td>
-          </tr>
-        `
-          )
-          .join("");
+        var recent = orders.slice(0, 5);
+        recentOrders.innerHTML = recent.map(function (o) {
+          return '<tr>' +
+            '<td style="font-family:monospace; font-size:0.75rem;">' + o.id.slice(0, 20) + '...</td>' +
+            '<td>' + (o.customer?.name || o.customer?.email || "N/A") + '</td>' +
+            '<td><span class="badge ' + (STATUS_BADGES[o.status] || "badge-pending") + '">' + (STATUS_LABELS[o.status] || o.status) + '</span></td>' +
+            '<td>' + formatCurrency(o.amountTotal || 0) + '</td>' +
+            '<td style="color:var(--text-muted); font-size:0.8rem;">' + formatDate(o.createdAt) + '</td>' +
+          '</tr>';
+        }).join("");
       } else {
-        recentOrders.innerHTML =
-          '<tr><td colspan="5" class="admin-empty">No orders yet. Orders appear after a successful Stripe payment.</td></tr>';
+        recentOrders.innerHTML = '<tr><td colspan="5" class="admin-empty">No orders yet. Orders appear after a successful Stripe payment.</td></tr>';
       }
     }
 

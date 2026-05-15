@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    .settings-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .settings-section-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-form .form-group { margin-bottom: 16px; }
+    .settings-form .form-group label {
+      display: block; font-size: 0.65rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .settings-form input,
+    .settings-form select,
+    .settings-form textarea {
+      width: 100%; padding: 10px 12px; font-size: 0.85rem;
+      font-family: var(--font); color: var(--text);
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); box-sizing: border-box;
+    }
+    .settings-form input:focus,
+    .settings-form select:focus,
+    .settings-form textarea:focus {
+      outline: none; border-color: var(--text-muted);
+    }
+    .settings-form textarea { resize: vertical; min-height: 60px; }
+    .settings-form small {
+      display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .shipping-rate-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .shipping-rate-title {
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
+    }
+    .admin-email-list { list-style: none; padding: 0; margin: 0 0 12px; }
+    .admin-email-list li {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+    }
+    .admin-email-list li:last-child { border-bottom: none; }
+    .btn-remove-email {
+      padding: 4px 10px; font-size: 0.7rem; font-family: var(--font);
+      color: #e55; background: transparent; border: 1px solid rgba(238,85,85,0.3);
+      border-radius: var(--radius); cursor: pointer;
+    }
+    .btn-remove-email:hover { border-color: #e55; }
+    .btn-primary-admin {
+      padding: 10px 24px; font-size: 0.8rem; font-family: var(--font);
+      font-weight: 500; color: var(--bg); background: var(--text);
+      border: none; border-radius: var(--radius); cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary-admin:hover { opacity: 0.85; }
+    .btn-primary-admin:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-cancel {
+      padding: 10px 24px; font-size: 0.8rem; font-family: var(--font);
+      font-weight: 500; color: var(--text-muted); background: transparent;
+      border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: var(--text-muted); }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
+      font-size: 0.85rem; color: var(--bg); background: var(--text);
+      border-radius: var(--radius); z-index: 300;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #c44; color: #fff; }
+
+    @media (max-width: 600px) {
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+        <a href="/admin/orders.html"><span class="nav-icon">&#9776;</span> Orders</a>
+        <a href="/admin/products.html"><span class="nav-icon">&#9830;</span> Products</a>
+        <a href="/admin/customers.html"><span class="nav-icon">&#9823;</span> Customers</a>
+        <a href="/admin/analytics.html"><span class="nav-icon">&#9670;</span> Analytics</a>
+        <a href="/admin/settings.html" class="active"><span class="nav-icon">&#9881;</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+        <br><a href="#" onclick="logout(); return false;" style="margin-top:8px; display:inline-block;">Logout</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Settings</h1>
+        <div class="header-actions">
+          <button class="btn-primary-admin" id="save-btn">Save Settings</button>
+        </div>
+      </div>
+
+      <form class="settings-form" id="settings-form">
+        <!-- Store Info -->
+        <div class="settings-section">
+          <div class="settings-section-title">Store Information</div>
+          <div class="form-group">
+            <label for="store-name">Store Name</label>
+            <input type="text" id="store-name" />
+          </div>
+          <div class="form-group">
+            <label for="store-description">Store Description</label>
+            <textarea id="store-description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="store-currency">Currency</label>
+            <select id="store-currency">
+              <option value="usd">USD ($)</option>
+              <option value="eur">EUR</option>
+              <option value="gbp">GBP</option>
+              <option value="cad">CAD</option>
+              <option value="aud">AUD</option>
+              <option value="aed">AED</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Shipping Rates -->
+        <div class="settings-section">
+          <div class="settings-section-title">Shipping Rates</div>
+
+          <div class="shipping-rate-card">
+            <div class="shipping-rate-title">Standard Shipping</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="std-name">Display Name</label>
+                <input type="text" id="std-name" />
+              </div>
+              <div class="form-group">
+                <label for="std-amount">Amount (cents)</label>
+                <input type="number" id="std-amount" min="0" />
+                <small>e.g. 700 = $7.00</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="std-min-days">Min Days</label>
+                <input type="number" id="std-min-days" min="1" />
+              </div>
+              <div class="form-group">
+                <label for="std-max-days">Max Days</label>
+                <input type="number" id="std-max-days" min="1" />
+              </div>
+            </div>
+          </div>
+
+          <div class="shipping-rate-card">
+            <div class="shipping-rate-title">Express Shipping</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="exp-name">Display Name</label>
+                <input type="text" id="exp-name" />
+              </div>
+              <div class="form-group">
+                <label for="exp-amount">Amount (cents)</label>
+                <input type="number" id="exp-amount" min="0" />
+                <small>e.g. 1800 = $18.00</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="exp-min-days">Min Days</label>
+                <input type="number" id="exp-min-days" min="1" />
+              </div>
+              <div class="form-group">
+                <label for="exp-max-days">Max Days</label>
+                <input type="number" id="exp-max-days" min="1" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="settings-section">
+          <div class="settings-section-title">Notifications</div>
+          <div class="form-group">
+            <label for="low-stock-threshold">Low Stock Threshold</label>
+            <input type="number" id="low-stock-threshold" min="1" />
+            <small>Products at or below this quantity will show a low stock alert</small>
+          </div>
+        </div>
+
+        <!-- Admin Access -->
+        <div class="settings-section">
+          <div class="settings-section-title">Admin Access</div>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Emails that have admin panel access:</p>
+          <ul class="admin-email-list" id="admin-email-list"></ul>
+          <div class="form-row" style="max-width:400px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <input type="email" id="new-admin-email" placeholder="Add email address..." />
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button type="button" class="btn-cancel" id="add-email-btn">Add</button>
+            </div>
+          </div>
+          <small style="display:block; font-size:0.7rem; color:var(--text-muted); margin-top:8px;">Note: Adding emails here only affects this settings list. Auth whitelist changes also require updating auth.js and backend code.</small>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+  <script>
+    var saveBtn = document.getElementById("save-btn");
+    var toast = document.getElementById("toast");
+    var adminEmails = [];
+
+    function showToast(message, isError) {
+      toast.textContent = message;
+      toast.className = "toast" + (isError ? " error" : "");
+      toast.classList.add("show");
+      setTimeout(function () { toast.classList.remove("show"); }, 3000);
+    }
+
+    function renderEmailList() {
+      var list = document.getElementById("admin-email-list");
+      list.innerHTML = adminEmails.map(function (email) {
+        return '<li><span>' + email + '</span><button type="button" class="btn-remove-email" onclick="removeEmail(\'' + email.replace(/'/g, "\\'") + '\')">Remove</button></li>';
+      }).join("");
+    }
+
+    window.removeEmail = function (email) {
+      adminEmails = adminEmails.filter(function (e) { return e !== email; });
+      renderEmailList();
+    };
+
+    document.getElementById("add-email-btn").addEventListener("click", function () {
+      var input = document.getElementById("new-admin-email");
+      var email = input.value.trim().toLowerCase();
+      if (!email || !email.includes("@")) return;
+      if (adminEmails.indexOf(email) === -1) {
+        adminEmails.push(email);
+        renderEmailList();
+      }
+      input.value = "";
+    });
+
+    async function loadSettings() {
+      try {
+        var res = await fetch("/api/admin/settings");
+        var s = await res.json();
+
+        document.getElementById("store-name").value = s.storeName || "";
+        document.getElementById("store-description").value = s.storeDescription || "";
+        document.getElementById("store-currency").value = s.currency || "usd";
+        document.getElementById("low-stock-threshold").value = s.lowStockThreshold || 10;
+
+        var std = s.shippingRates?.standard || {};
+        document.getElementById("std-name").value = std.displayName || "Standard Shipping";
+        document.getElementById("std-amount").value = std.amount || 700;
+        document.getElementById("std-min-days").value = std.minDays || 7;
+        document.getElementById("std-max-days").value = std.maxDays || 10;
+
+        var exp = s.shippingRates?.express || {};
+        document.getElementById("exp-name").value = exp.displayName || "Express Shipping";
+        document.getElementById("exp-amount").value = exp.amount || 1800;
+        document.getElementById("exp-min-days").value = exp.minDays || 2;
+        document.getElementById("exp-max-days").value = exp.maxDays || 4;
+
+        adminEmails = s.adminEmails || [];
+        renderEmailList();
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+        showToast("Failed to load settings", true);
+      }
+    }
+
+    saveBtn.addEventListener("click", async function () {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      var data = {
+        storeName: document.getElementById("store-name").value.trim(),
+        storeDescription: document.getElementById("store-description").value.trim(),
+        currency: document.getElementById("store-currency").value,
+        lowStockThreshold: Number(document.getElementById("low-stock-threshold").value) || 10,
+        adminEmails: adminEmails,
+        shippingRates: {
+          standard: {
+            amount: Number(document.getElementById("std-amount").value) || 700,
+            currency: document.getElementById("store-currency").value,
+            displayName: document.getElementById("std-name").value.trim() || "Standard Shipping",
+            minDays: Number(document.getElementById("std-min-days").value) || 7,
+            maxDays: Number(document.getElementById("std-max-days").value) || 10,
+          },
+          express: {
+            amount: Number(document.getElementById("exp-amount").value) || 1800,
+            currency: document.getElementById("store-currency").value,
+            displayName: document.getElementById("exp-name").value.trim() || "Express Shipping",
+            minDays: Number(document.getElementById("exp-min-days").value) || 2,
+            maxDays: Number(document.getElementById("exp-max-days").value) || 4,
+          },
+        },
+        notifications: {
+          lowStockEnabled: true,
+        },
+      };
+
+      try {
+        var res = await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (!res.ok) {
+          var err = await res.json();
+          throw new Error(err.error || "Save failed");
+        }
+
+        showToast("Settings saved");
+      } catch (err) {
+        showToast("Error: " + err.message, true);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Settings";
+      }
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>

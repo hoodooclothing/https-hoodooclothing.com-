@@ -33,8 +33,50 @@ module.exports = async (req, res) => {
     const totalOrders = paidSessions.length;
     const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
-    // ── Daily revenue (for range) ──
+    // ── Previous period comparison ──
     const now = new Date();
+    const rangeStart = new Date(now);
+    rangeStart.setDate(rangeStart.getDate() - rangeDays);
+    const prevStart = new Date(rangeStart);
+    prevStart.setDate(prevStart.getDate() - rangeDays);
+
+    let currRevenue = 0, currOrders = 0, currItems = 0;
+    let prevRevenue = 0, prevOrders = 0, prevItems = 0;
+
+    paidSessions.forEach((s) => {
+      const created = new Date(s.created * 1000);
+      const sessionItems = (s.line_items?.data || []).reduce((sum, li) => sum + (li.quantity || 0), 0);
+      if (created >= rangeStart) {
+        currRevenue += s.amount_total || 0;
+        currOrders++;
+        currItems += sessionItems;
+      } else if (created >= prevStart && created < rangeStart) {
+        prevRevenue += s.amount_total || 0;
+        prevOrders++;
+        prevItems += sessionItems;
+      }
+    });
+
+    function pctChange(curr, prev) {
+      if (prev === 0) return curr > 0 ? 100 : 0;
+      return Math.round(((curr - prev) / prev) * 100);
+    }
+
+    const previousPeriod = {
+      revenue: prevRevenue,
+      orders: prevOrders,
+      items: prevItems,
+      avgOrderValue: prevOrders > 0 ? Math.round(prevRevenue / prevOrders) : 0,
+      revenueChange: pctChange(currRevenue, prevRevenue),
+      ordersChange: pctChange(currOrders, prevOrders),
+      itemsChange: pctChange(currItems, prevItems),
+      aovChange: pctChange(
+        currOrders > 0 ? Math.round(currRevenue / currOrders) : 0,
+        prevOrders > 0 ? Math.round(prevRevenue / prevOrders) : 0
+      ),
+    };
+
+    // ── Daily revenue (for range) ──
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dailyRevenue = [];
 
@@ -152,6 +194,7 @@ module.exports = async (req, res) => {
       salesByType,
       statusDistribution,
       revenueByDayOfWeek,
+      previousPeriod,
       customers: {
         total: customerList.length,
         repeat: repeatCustomers,

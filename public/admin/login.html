@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    .login-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .login-form .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .login-form label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .login-form input:focus {
+      outline: none;
+      border-color: var(--text-muted);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--text);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+
+    .login-btn:hover { opacity: 0.85; }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .login-error {
+      font-size: 0.8rem;
+      color: #e55;
+      margin-top: 12px;
+      min-height: 1.2em;
+    }
+
+    .login-info {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+
+    .code-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .code-inputs input {
+      width: 44px;
+      height: 52px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 500;
+      font-family: monospace;
+      padding: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .code-inputs input:focus {
+      outline: none;
+      border-color: var(--text-muted);
+    }
+
+    #code-step { display: none; }
+    #code-step.visible { display: block; }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .back-link:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+      </div>
+      <div class="login-subtitle">Admin Panel</div>
+
+      <!-- Step 1: Email -->
+      <div id="email-step">
+        <form class="login-form" id="email-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="admin@example.com" required autocomplete="email" />
+          </div>
+          <button type="submit" class="login-btn" id="send-code-btn">Send Code</button>
+        </form>
+        <div class="login-error" id="email-error"></div>
+        <div class="login-info">Enter your admin email to receive a login code.</div>
+      </div>
+
+      <!-- Step 2: Code -->
+      <div id="code-step">
+        <p class="login-info" style="margin-bottom:8px;">Code sent to <strong id="sent-email"></strong></p>
+        <form class="login-form" id="code-form">
+          <div class="code-inputs" id="code-inputs">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" />
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          </div>
+          <button type="submit" class="login-btn" id="verify-btn">Verify Code</button>
+        </form>
+        <div class="login-error" id="code-error"></div>
+        <span class="back-link" id="back-btn">&larr; Use different email</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // If already logged in, redirect to dashboard
+    (function () {
+      var allowed = ["footy1x.ae@gmail.com", "theodorejamespeck@gmail.com"];
+      var cookie = document.cookie.split("; ").find(function (c) { return c.startsWith("hoodoo_admin="); });
+      var saved = cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
+      if (saved && allowed.indexOf(saved) !== -1) {
+        window.location.href = "/admin/index.html";
+      }
+    })();
+
+    var emailStep = document.getElementById("email-step");
+    var codeStep = document.getElementById("code-step");
+    var emailForm = document.getElementById("email-form");
+    var codeForm = document.getElementById("code-form");
+    var emailInput = document.getElementById("login-email");
+    var sentEmailEl = document.getElementById("sent-email");
+    var emailError = document.getElementById("email-error");
+    var codeError = document.getElementById("code-error");
+    var sendCodeBtn = document.getElementById("send-code-btn");
+    var verifyBtn = document.getElementById("verify-btn");
+    var backBtn = document.getElementById("back-btn");
+    var codeInputs = document.querySelectorAll("#code-inputs input");
+
+    var authToken = "";
+    var authEmail = "";
+
+    // Auto-advance code inputs
+    codeInputs.forEach(function (input, i) {
+      input.addEventListener("input", function () {
+        if (input.value && i < codeInputs.length - 1) {
+          codeInputs[i + 1].focus();
+        }
+      });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Backspace" && !input.value && i > 0) {
+          codeInputs[i - 1].focus();
+        }
+      });
+      // Allow paste of full code
+      input.addEventListener("paste", function (e) {
+        e.preventDefault();
+        var text = (e.clipboardData || window.clipboardData).getData("text").trim();
+        if (/^\d{6}$/.test(text)) {
+          for (var j = 0; j < 6; j++) {
+            codeInputs[j].value = text[j];
+          }
+          codeInputs[5].focus();
+        }
+      });
+    });
+
+    // Step 1: Send Code
+    emailForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      emailError.textContent = "";
+      authEmail = emailInput.value.trim().toLowerCase();
+
+      if (!authEmail) {
+        emailError.textContent = "Please enter your email address.";
+        return;
+      }
+
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.textContent = "Sending...";
+
+      try {
+        var res = await fetch("/api/admin/send-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: authEmail }),
+        });
+
+        var data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to send code");
+        }
+
+        authToken = data.token || "";
+        sentEmailEl.textContent = authEmail;
+        emailStep.style.display = "none";
+        codeStep.classList.add("visible");
+        codeInputs[0].focus();
+      } catch (err) {
+        emailError.textContent = err.message;
+      } finally {
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = "Send Code";
+      }
+    });
+
+    // Step 2: Verify Code
+    codeForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      codeError.textContent = "";
+
+      var code = "";
+      codeInputs.forEach(function (input) { code += input.value; });
+
+      if (code.length !== 6) {
+        codeError.textContent = "Please enter the full 6-digit code.";
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = "Verifying...";
+
+      try {
+        var res = await fetch("/api/admin/verify-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: authEmail, code: code, token: authToken }),
+        });
+
+        var data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Verification failed");
+        }
+
+        if (data.verified) {
+          // Set cookie (30 days)
+          var expires = new Date();
+          expires.setDate(expires.getDate() + 30);
+          document.cookie = "hoodoo_admin=" + encodeURIComponent(authEmail) + "; path=/; expires=" + expires.toUTCString();
+          window.location.href = "/admin/index.html";
+        } else {
+          throw new Error("Verification failed");
+        }
+      } catch (err) {
+        codeError.textContent = err.message;
+        // Clear code inputs on error
+        codeInputs.forEach(function (input) { input.value = ""; });
+        codeInputs[0].focus();
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = "Verify Code";
+      }
+    });
+
+    // Back button
+    backBtn.addEventListener("click", function () {
+      codeStep.classList.remove("visible");
+      emailStep.style.display = "block";
+      codeError.textContent = "";
+      codeInputs.forEach(function (input) { input.value = ""; });
+      emailInput.focus();
+    });
+  </script>
+</body>
+</html>

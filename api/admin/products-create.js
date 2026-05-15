@@ -30,6 +30,10 @@ module.exports = async function handler(req, res) {
       colorVariants: body.colorVariants || [],
       quantity: body.quantity !== undefined ? Number(body.quantity) : -1,
       active: true,
+      sku: body.sku || "",
+      tags: body.tags || [],
+      seoTitle: body.seoTitle || "",
+      seoDescription: body.seoDescription || "",
     };
 
     products.push(newProduct);

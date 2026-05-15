@@ -360,6 +360,41 @@
   transform: rotate(90deg);
 }
 
+/* ── Status Badges ── */
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.badge-pending {
+  background: #3a3a1a;
+  color: #e0c060;
+}
+
+.badge-submitted {
+  background: #1a2a3a;
+  color: #60a0e0;
+}
+
+.badge-production {
+  background: #2a1a3a;
+  color: #a060e0;
+}
+
+.badge-shipped {
+  background: #1a3a2a;
+  color: #50c080;
+}
+
+.badge-delivered {
+  background: #1a3a1a;
+  color: #60d060;
+}
+
 /* ── Loading / Empty ── */
 .admin-loading,
 .admin-empty {
@@ -666,6 +701,53 @@
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin-bottom: 32px;
+}
+
+/* ── Order Items Table (inside expandable) ── */
+.order-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-items-table th {
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-items-table td {
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-items-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Tapstitch Meta ── */
+.tapstitch-meta h4 {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.tapstitch-meta p {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.tapstitch-meta small {
+  color: var(--text-muted);
 }
 
 /* ── Responsive ── */

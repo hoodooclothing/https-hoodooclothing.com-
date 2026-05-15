@@ -13,6 +13,9 @@
     { "source": "/api/admin/products-update", "destination": "/api/admin/products-update" },
     { "source": "/api/admin/products-create", "destination": "/api/admin/products-create" },
     { "source": "/api/admin/products-delete", "destination": "/api/admin/products-delete" },
-    { "source": "/api/admin/products", "destination": "/api/admin/products" }
+    { "source": "/api/admin/products", "destination": "/api/admin/products" },
+    { "source": "/api/admin/upload-image", "destination": "/api/admin/upload-image" },
+    { "source": "/api/admin/customers", "destination": "/api/admin/customers" },
+    { "source": "/api/admin/settings", "destination": "/api/admin/settings" }
   ]
 }

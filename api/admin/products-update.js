@@ -23,6 +23,7 @@ module.exports = async function handler(req, res) {
       "name", "description", "productType", "tapstitchProductId",
       "printMethod", "price", "sizes", "colors", "image", "imageBack", "quantity",
       "active", "colorVariants",
+      "sku", "tags", "seoTitle", "seoDescription",
     ];
 
     for (const key of allowed) {

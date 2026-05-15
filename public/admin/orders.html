@@ -10,14 +10,108 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="admin.css" />
+  <style>
+    .order-inline-select {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    .order-inline-select:focus { outline: none; border-color: var(--text-muted); }
+    .order-inline-input {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .order-inline-input:focus { outline: none; border-color: var(--text-muted); }
+    .order-field { margin-bottom: 12px; }
+    .order-field label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .order-field-row { display: flex; gap: 8px; align-items: center; }
+    .btn-sm-save {
+      padding: 6px 12px;
+      font-size: 0.7rem;
+      font-family: var(--font);
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--text);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    .btn-sm-save:hover { opacity: 0.85; }
+    .order-notes-area {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .order-notes-area:focus { outline: none; border-color: var(--text-muted); }
+    .order-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 24px; font-size: 0.85rem;
+      color: var(--bg); background: var(--text);
+      border-radius: var(--radius); z-index: 300;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #c44; color: #fff; }
+
+    .bulk-bar {
+      display: none; align-items: center; gap: 8px;
+      padding: 10px 14px; margin-bottom: 12px;
+      background: rgba(90,159,212,0.08);
+      border: 1px solid rgba(90,159,212,0.25);
+      border-radius: var(--radius); font-size: 0.8rem;
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-bar .bulk-count { font-weight: 500; color: var(--text); margin-right: 4px; }
+    .bulk-bar .bulk-deselect {
+      margin-left: auto; font-size: 0.7rem; color: var(--text-muted);
+      background: none; border: none; cursor: pointer; font-family: var(--font); text-decoration: underline;
+    }
+    .bulk-bar .bulk-deselect:hover { color: var(--text); }
+    .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text); }
+
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Shipping Banner -->
   <div class="shipping-banner">HOODOO Admin</div>
 
   <div class="admin-layout">
-    <!-- Sidebar -->
     <aside class="admin-sidebar">
       <div class="sidebar-logo">
         <span class="hoodoo-mark" style="font-size:0.8em;">
@@ -32,35 +126,29 @@
         <small>Admin Panel</small>
       </div>
       <nav class="sidebar-nav">
-        <a href="/admin/index.html">
-          <span class="nav-icon">&#9632;</span> Dashboard
-        </a>
-        <a href="/admin/orders.html" class="active">
-          <span class="nav-icon">&#9776;</span> Orders
-        </a>
-        <a href="/admin/products.html">
-          <span class="nav-icon">&#9830;</span> Products
-        </a>
-        <a href="/admin/analytics.html">
-          <span class="nav-icon">&#9670;</span> Analytics
-        </a>
+        <a href="/admin/index.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+        <a href="/admin/orders.html" class="active"><span class="nav-icon">&#9776;</span> Orders</a>
+        <a href="/admin/products.html"><span class="nav-icon">&#9830;</span> Products</a>
+        <a href="/admin/customers.html"><span class="nav-icon">&#9823;</span> Customers</a>
+        <a href="/admin/analytics.html"><span class="nav-icon">&#9670;</span> Analytics</a>
+        <a href="/admin/settings.html"><span class="nav-icon">&#9881;</span> Settings</a>
       </nav>
       <div class="sidebar-footer">
         <a href="/">&larr; Back to Storefront</a>
+        <br><a href="#" onclick="logout(); return false;" style="margin-top:8px; display:inline-block;">Logout</a>
       </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="admin-main">
       <div class="admin-page-header">
         <h1>Orders</h1>
         <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="export-btn">Export CSV</button>
           <a href="https://dashboard.stripe.com/payments" target="_blank" class="btn btn-secondary btn-sm">Stripe Dashboard</a>
           <button class="btn btn-secondary btn-sm" id="refresh-btn">Refresh</button>
         </div>
       </div>
 
-      <!-- Toolbar -->
       <div class="orders-toolbar">
         <input type="text" class="search-input" id="search-input" placeholder="Search by customer name or email..." />
         <select class="filter-select" id="status-filter">
@@ -73,10 +161,25 @@
         </select>
       </div>
 
-      <!-- Orders Table -->
+      <!-- Bulk Actions Bar -->
+      <div class="bulk-bar" id="bulk-bar">
+        <span class="bulk-count" id="bulk-count">0</span> selected
+        <select class="order-inline-select" id="bulk-status-select">
+          <option value="">Bulk Status...</option>
+          <option value="pending_fulfillment">Pending</option>
+          <option value="submitted_to_tapstitch">Submitted</option>
+          <option value="in_production">In Production</option>
+          <option value="shipped">Mark Shipped</option>
+          <option value="delivered">Mark Delivered</option>
+        </select>
+        <button class="btn-sm-save" id="bulk-status-apply">Apply</button>
+        <button class="bulk-deselect" id="bulk-deselect">Deselect All</button>
+      </div>
+
       <table class="admin-table" id="orders-table">
         <thead>
           <tr>
+            <th><input type="checkbox" class="row-checkbox" id="select-all" /></th>
             <th></th>
             <th>Order ID</th>
             <th>Customer</th>
@@ -87,11 +190,16 @@
           </tr>
         </thead>
         <tbody id="orders-body">
-          <tr><td colspan="7" class="admin-loading">Loading orders...</td></tr>
+          <tr><td colspan="8" class="admin-loading">Loading orders...</td></tr>
         </tbody>
       </table>
     </main>
   </div>
+
+  <!-- Hidden print area -->
+  <div id="print-area" style="display:none;"></div>
+
+  <div class="toast" id="toast"></div>
 
   <script src="auth.js"></script>
   <script src="admin.js"></script>
@@ -100,122 +208,275 @@
     const searchInput = document.getElementById("search-input");
     const statusFilter = document.getElementById("status-filter");
     const refreshBtn = document.getElementById("refresh-btn");
+    const toast = document.getElementById("toast");
+    const bulkBar = document.getElementById("bulk-bar");
+    const bulkCountEl = document.getElementById("bulk-count");
+    const selectAllCheckbox = document.getElementById("select-all");
 
     let allOrders = [];
+    let selectedIds = new Set();
+
+    function showToast(message, isError) {
+      toast.textContent = message;
+      toast.className = "toast" + (isError ? " error" : "");
+      toast.classList.add("show");
+      setTimeout(function () { toast.classList.remove("show"); }, 3000);
+    }
+
+    function updateBulkBar() {
+      bulkCountEl.textContent = selectedIds.size;
+      bulkBar.classList.toggle("visible", selectedIds.size > 0);
+      selectAllCheckbox.checked = allOrders.length > 0 && allOrders.every(function (o) { return selectedIds.has(o.id); });
+    }
+
+    selectAllCheckbox.addEventListener("change", function () {
+      if (selectAllCheckbox.checked) {
+        allOrders.forEach(function (o) { selectedIds.add(o.id); });
+      } else {
+        selectedIds.clear();
+      }
+      updateBulkBar();
+      updateRowCheckboxes();
+    });
+
+    function updateRowCheckboxes() {
+      ordersBody.querySelectorAll(".row-checkbox").forEach(function (cb) {
+        cb.checked = selectedIds.has(cb.dataset.id);
+      });
+    }
+
+    document.getElementById("bulk-deselect").addEventListener("click", function () {
+      selectedIds.clear();
+      updateBulkBar();
+      updateRowCheckboxes();
+    });
+
+    // Bulk status apply
+    document.getElementById("bulk-status-apply").addEventListener("click", async function () {
+      var status = document.getElementById("bulk-status-select").value;
+      if (!status) { showToast("Select a status first", true); return; }
+      var ids = Array.from(selectedIds);
+      for (var i = 0; i < ids.length; i++) {
+        await fetch("/admin/orders/" + encodeURIComponent(ids[i]), {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: status }),
+        });
+      }
+      showToast(ids.length + " order(s) updated");
+      selectedIds.clear();
+      await loadOrders();
+    });
+
+    // Export CSV
+    document.getElementById("export-btn").addEventListener("click", function () {
+      if (!allOrders || allOrders.length === 0) { showToast("No orders to export", true); return; }
+      var headers = ["Order ID","Customer Name","Customer Email","Status","Items","Total","Currency","Date","Tracking Number","Notes"];
+      var rows = allOrders.map(function (o) {
+        var itemCount = o.items.reduce(function (s, i) { return s + i.quantity; }, 0);
+        return [
+          '"' + o.id + '"',
+          '"' + (o.customer?.name || "").replace(/"/g, '""') + '"',
+          '"' + (o.customer?.email || "").replace(/"/g, '""') + '"',
+          o.status,
+          itemCount,
+          (o.amountTotal || 0) / 100,
+          o.currency || "usd",
+          o.createdAt,
+          '"' + (o.trackingNumber || "").replace(/"/g, '""') + '"',
+          '"' + (o.notes || "").replace(/"/g, '""') + '"',
+        ].join(",");
+      });
+      var csv = headers.join(",") + "\n" + rows.join("\n");
+      var blob = new Blob([csv], { type: "text/csv" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "orders-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("CSV exported");
+    });
 
     async function loadOrders() {
       const search = searchInput.value.trim();
       const status = statusFilter.value;
-
       allOrders = await fetchOrders(search, status);
+      selectedIds.clear();
+      updateBulkBar();
       renderOrders();
+    }
+
+    async function updateOrderField(orderId, field, value) {
+      try {
+        var body = {};
+        body[field] = value;
+        var res = await fetch("/admin/orders/" + encodeURIComponent(orderId), {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          var err = await res.json();
+          throw new Error(err.error || "Update failed");
+        }
+        var updated = await res.json();
+        // Update local data
+        var idx = allOrders.findIndex(function (o) { return o.id === orderId; });
+        if (idx !== -1) Object.assign(allOrders[idx], updated);
+        showToast(field === "status" ? "Status updated" : field === "trackingNumber" ? "Tracking saved" : "Notes saved");
+        if (field === "status") renderOrders();
+      } catch (err) {
+        showToast("Error: " + err.message, true);
+      }
+    }
+
+    function printInvoice(order) {
+      var printArea = document.getElementById("print-area");
+      var addr = order.shipping?.address;
+      var addrStr = addr ? [addr.line1, addr.line2, addr.city + ", " + (addr.state || "") + " " + (addr.postal_code || ""), addr.country].filter(Boolean).join("<br>") : "Not provided";
+      var itemRows = order.items.map(function (item) {
+        return "<tr><td style='padding:8px;border-bottom:1px solid #eee;'>" + item.name + "</td><td style='padding:8px;border-bottom:1px solid #eee;text-align:center;'>" + item.quantity + "</td><td style='padding:8px;border-bottom:1px solid #eee;text-align:right;'>" + formatCurrency(item.total) + "</td></tr>";
+      }).join("");
+
+      printArea.innerHTML = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px;">' +
+        '<h1 style="font-size:24px;font-weight:400;margin-bottom:4px;">INVOICE</h1>' +
+        '<p style="color:#666;font-size:13px;margin-bottom:32px;">Order ' + order.id + ' &mdash; ' + formatDate(order.createdAt) + '</p>' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:32px;">' +
+          '<div><strong>Bill To</strong><br>' + (order.customer?.name || "N/A") + '<br>' + (order.customer?.email || "") + '<br>' + (order.customer?.phone || "") + '</div>' +
+          '<div><strong>Ship To</strong><br>' + (order.shipping?.name || "") + '<br>' + addrStr + '</div>' +
+        '</div>' +
+        '<table style="width:100%;border-collapse:collapse;margin-bottom:24px;"><thead><tr>' +
+          '<th style="padding:8px;border-bottom:2px solid #333;text-align:left;">Item</th>' +
+          '<th style="padding:8px;border-bottom:2px solid #333;text-align:center;">Qty</th>' +
+          '<th style="padding:8px;border-bottom:2px solid #333;text-align:right;">Total</th>' +
+        '</tr></thead><tbody>' + itemRows + '</tbody></table>' +
+        '<div style="text-align:right;font-size:18px;font-weight:500;">Total: ' + formatCurrency(order.amountTotal || 0) + '</div>' +
+        (order.trackingNumber ? '<p style="margin-top:24px;color:#666;">Tracking: ' + order.trackingNumber + '</p>' : '') +
+      '</div>';
+
+      printArea.style.display = "block";
+      window.print();
+      setTimeout(function () { printArea.style.display = "none"; }, 500);
     }
 
     function renderOrders() {
       if (!allOrders || allOrders.length === 0) {
-        ordersBody.innerHTML = '<tr><td colspan="7" class="admin-empty">No orders found.</td></tr>';
+        ordersBody.innerHTML = '<tr><td colspan="8" class="admin-empty">No orders found.</td></tr>';
         return;
       }
 
-      ordersBody.innerHTML = allOrders
-        .map((order, idx) => {
-          const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
-          const shipping = order.shipping;
-          const addr = shipping?.address;
-          const addrStr = addr
-            ? [addr.line1, addr.line2, `${addr.city}, ${addr.state} ${addr.postal_code}`, addr.country]
-                .filter(Boolean)
-                .join("<br>")
-            : "Not provided";
+      ordersBody.innerHTML = allOrders.map(function (order, idx) {
+        var itemCount = order.items.reduce(function (sum, i) { return sum + i.quantity; }, 0);
+        var shipping = order.shipping;
+        var addr = shipping?.address;
+        var addrStr = addr
+          ? [addr.line1, addr.line2, (addr.city || "") + ", " + (addr.state || "") + " " + (addr.postal_code || ""), addr.country].filter(Boolean).join("<br>")
+          : "Not provided";
 
-          const itemRows = order.items
-            .map(
-              (item) =>
-                `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${formatCurrency(item.total)}</td></tr>`
-            )
-            .join("");
+        var itemRows = order.items.map(function (item) {
+          return '<tr><td>' + item.name + '</td><td>' + item.quantity + '</td><td>' + formatCurrency(item.total) + '</td></tr>';
+        }).join("");
 
-          const tapstitchInfo = order.tapstitchMeta
-            ? order.tapstitchMeta
-                .map(
-                  (m) =>
-                    `<p>${m.name} &mdash; ${m.color || "N/A"} / ${m.size || "N/A"} &mdash; Qty: ${m.quantity} &mdash; Print: ${m.printMethod || "dtg"}<br><small>Tapstitch ID: ${m.tapstitchProductId || "N/A"} &bull; Type: ${m.productType || "N/A"}</small></p>`
-                )
-                .join("")
-            : "<p>No Tapstitch metadata</p>";
+        var tapstitchInfo = order.tapstitchMeta
+          ? order.tapstitchMeta.map(function (m) {
+              return '<p>' + m.name + ' &mdash; ' + (m.color || "N/A") + ' / ' + (m.size || "N/A") + ' &mdash; Qty: ' + m.quantity + ' &mdash; Print: ' + (m.printMethod || "dtg") + '<br><small>Tapstitch ID: ' + (m.tapstitchProductId || "N/A") + ' &bull; Type: ' + (m.productType || "N/A") + '</small></p>';
+            }).join("")
+          : "<p>No Tapstitch metadata</p>";
 
-          return `
-            <tr class="toggle-row" data-idx="${idx}">
-              <td><span class="toggle-arrow" id="arrow-${idx}">&#9654;</span></td>
-              <td style="font-family:monospace; font-size:0.75rem;">${order.id.slice(0, 24)}...</td>
-              <td>${order.customer?.name || order.customer?.email || "N/A"}</td>
-              <td><span class="badge ${STATUS_BADGES[order.status] || "badge-pending"}">${STATUS_LABELS[order.status] || order.status}</span></td>
-              <td>${itemCount}</td>
-              <td>${formatCurrency(order.amountTotal || 0)}</td>
-              <td style="color:var(--text-muted); font-size:0.8rem;">${formatDate(order.createdAt)}</td>
-            </tr>
-            <tr class="order-expand-row">
-              <td colspan="7">
-                <div class="order-expand-content" id="expand-${idx}">
-                  <div class="order-expand-grid">
-                    <div class="order-expand-section">
-                      <h4>Customer</h4>
-                      <p>
-                        ${order.customer?.name || "N/A"}<br>
-                        ${order.customer?.email || "N/A"}<br>
-                        ${order.customer?.phone || ""}
-                      </p>
-                    </div>
-                    <div class="order-expand-section">
-                      <h4>Shipping</h4>
-                      <p>${shipping?.name || ""}<br>${addrStr}</p>
-                    </div>
-                    <div class="order-expand-section">
-                      <h4>Actions</h4>
-                      <p><a href="https://dashboard.stripe.com/payments" target="_blank" class="btn btn-secondary btn-sm">View in Stripe</a></p>
-                    </div>
-                  </div>
+        var checked = selectedIds.has(order.id) ? " checked" : "";
+        var stripeLink = order.stripeSessionId
+          ? "https://dashboard.stripe.com/payments/" + order.stripeSessionId
+          : "https://dashboard.stripe.com/payments";
 
-                  <table class="order-items-table" style="margin-top:16px;">
-                    <thead>
-                      <tr><th>Item</th><th>Qty</th><th>Total</th></tr>
-                    </thead>
-                    <tbody>${itemRows}</tbody>
-                  </table>
+        return '<tr class="toggle-row" data-idx="' + idx + '">' +
+          '<td><input type="checkbox" class="row-checkbox" data-id="' + order.id + '"' + checked + ' onclick="event.stopPropagation();" /></td>' +
+          '<td><span class="toggle-arrow" id="arrow-' + idx + '">&#9654;</span></td>' +
+          '<td style="font-family:monospace; font-size:0.75rem;">' + order.id.slice(0, 24) + '...</td>' +
+          '<td>' + (order.customer?.name || order.customer?.email || "N/A") + '</td>' +
+          '<td><span class="badge ' + (STATUS_BADGES[order.status] || "badge-pending") + '">' + (STATUS_LABELS[order.status] || order.status) + '</span></td>' +
+          '<td>' + itemCount + '</td>' +
+          '<td>' + formatCurrency(order.amountTotal || 0) + '</td>' +
+          '<td style="color:var(--text-muted); font-size:0.8rem;">' + formatDate(order.createdAt) + '</td>' +
+        '</tr>' +
+        '<tr class="order-expand-row">' +
+          '<td colspan="8">' +
+            '<div class="order-expand-content" id="expand-' + idx + '">' +
+              '<div class="order-expand-grid">' +
+                '<div class="order-expand-section">' +
+                  '<h4>Customer</h4>' +
+                  '<p>' + (order.customer?.name || "N/A") + '<br>' + (order.customer?.email || "N/A") + '<br>' + (order.customer?.phone || "") + '</p>' +
+                '</div>' +
+                '<div class="order-expand-section">' +
+                  '<h4>Shipping</h4>' +
+                  '<p>' + (shipping?.name || "") + '<br>' + addrStr + '</p>' +
+                '</div>' +
+                '<div class="order-expand-section">' +
+                  '<div class="order-field">' +
+                    '<label>Update Status</label>' +
+                    '<select class="order-inline-select" id="status-select-' + idx + '" onchange="updateOrderField(\'' + order.id.replace(/'/g, "\\'") + '\', \'status\', this.value)">' +
+                      '<option value="pending_fulfillment"' + (order.status === "pending_fulfillment" ? " selected" : "") + '>Pending</option>' +
+                      '<option value="submitted_to_tapstitch"' + (order.status === "submitted_to_tapstitch" ? " selected" : "") + '>Submitted</option>' +
+                      '<option value="in_production"' + (order.status === "in_production" ? " selected" : "") + '>In Production</option>' +
+                      '<option value="shipped"' + (order.status === "shipped" ? " selected" : "") + '>Shipped</option>' +
+                      '<option value="delivered"' + (order.status === "delivered" ? " selected" : "") + '>Delivered</option>' +
+                    '</select>' +
+                  '</div>' +
+                  '<div class="order-field">' +
+                    '<label>Tracking Number</label>' +
+                    '<div class="order-field-row">' +
+                      '<input type="text" class="order-inline-input" id="tracking-' + idx + '" value="' + (order.trackingNumber || "").replace(/"/g, '&quot;') + '" placeholder="Enter tracking #" />' +
+                      '<button class="btn-sm-save" onclick="updateOrderField(\'' + order.id.replace(/'/g, "\\'") + '\', \'trackingNumber\', document.getElementById(\'tracking-' + idx + '\').value)">Save</button>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="order-field">' +
+                    '<label>Notes</label>' +
+                    '<textarea class="order-notes-area" id="notes-' + idx + '" placeholder="Add order notes...">' + (order.notes || "") + '</textarea>' +
+                    '<button class="btn-sm-save" style="margin-top:6px;" onclick="updateOrderField(\'' + order.id.replace(/'/g, "\\'") + '\', \'notes\', document.getElementById(\'notes-' + idx + '\').value)">Save Notes</button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<table class="order-items-table" style="margin-top:16px;"><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>' + itemRows + '</tbody></table>' +
+              '<div class="tapstitch-meta" style="margin-top:16px;"><h4>Tapstitch Fulfillment Details</h4>' + tapstitchInfo + '</div>' +
+              '<div class="order-actions-row">' +
+                '<button class="btn btn-secondary btn-sm" onclick="printInvoice(allOrders[' + idx + '])">Print Invoice</button>' +
+                '<a href="' + stripeLink + '" target="_blank" class="btn btn-secondary btn-sm">View in Stripe</a>' +
+              '</div>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join("");
 
-                  <div class="tapstitch-meta" style="margin-top:16px;">
-                    <h4>Tapstitch Fulfillment Details</h4>
-                    ${tapstitchInfo}
-                  </div>
-                </div>
-              </td>
-            </tr>
-          `;
-        })
-        .join("");
-
-      // Attach toggle handlers
-      document.querySelectorAll(".toggle-row").forEach((row) => {
-        row.addEventListener("click", () => {
-          const idx = row.dataset.idx;
-          const content = document.getElementById("expand-" + idx);
-          const arrow = document.getElementById("arrow-" + idx);
+      // Toggle handlers
+      document.querySelectorAll(".toggle-row").forEach(function (row) {
+        row.addEventListener("click", function (e) {
+          if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "BUTTON" || e.target.tagName === "TEXTAREA" || e.target.tagName === "A") return;
+          var idx = row.dataset.idx;
+          var content = document.getElementById("expand-" + idx);
+          var arrow = document.getElementById("arrow-" + idx);
           content.classList.toggle("open");
           arrow.classList.toggle("open");
+        });
+      });
+
+      // Row checkboxes
+      ordersBody.querySelectorAll(".row-checkbox").forEach(function (cb) {
+        cb.addEventListener("change", function () {
+          if (cb.checked) { selectedIds.add(cb.dataset.id); } else { selectedIds.delete(cb.dataset.id); }
+          updateBulkBar();
         });
       });
     }
 
     // Debounced search
     let searchTimeout;
-    searchInput.addEventListener("input", () => {
+    searchInput.addEventListener("input", function () {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(loadOrders, 300);
     });
 
     statusFilter.addEventListener("change", loadOrders);
     refreshBtn.addEventListener("click", loadOrders);
-
     loadOrders();
   </script>
 </body>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customers &mdash; HOODOO Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    .customer-expand-row td { padding: 0; background: var(--bg) !important; }
+    .customer-expand-content { padding: 20px 16px; display: none; }
+    .customer-expand-content.open { display: block; }
+    .customer-orders-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .customer-orders-table th {
+      text-align: left; font-size: 0.65rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+    }
+    .customer-orders-table td { font-size: 0.8rem; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .customer-orders-table tr:last-child td { border-bottom: none; }
+    .sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+    .sortable:hover { color: var(--text); }
+    .sort-arrow { font-size: 0.6rem; margin-left: 3px; opacity: 0.5; }
+    .sort-arrow.active { opacity: 1; }
+    .customer-count { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 12px 24px; font-size: 0.85rem;
+      color: var(--bg); background: var(--text); border-radius: var(--radius); z-index: 300;
+      opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="shipping-banner">HOODOO Admin</div>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-logo">
+        <span class="hoodoo-mark" style="font-size:0.8em;">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <small>Admin Panel</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin/index.html"><span class="nav-icon">&#9632;</span> Dashboard</a>
+        <a href="/admin/orders.html"><span class="nav-icon">&#9776;</span> Orders</a>
+        <a href="/admin/products.html"><span class="nav-icon">&#9830;</span> Products</a>
+        <a href="/admin/customers.html" class="active"><span class="nav-icon">&#9823;</span> Customers</a>
+        <a href="/admin/analytics.html"><span class="nav-icon">&#9670;</span> Analytics</a>
+        <a href="/admin/settings.html"><span class="nav-icon">&#9881;</span> Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/">&larr; Back to Storefront</a>
+        <br><a href="#" onclick="logout(); return false;" style="margin-top:8px; display:inline-block;">Logout</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1>Customers</h1>
+        <div class="header-actions">
+          <button class="btn btn-secondary btn-sm" id="export-btn">Export CSV</button>
+          <button class="btn btn-secondary btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="orders-toolbar">
+        <input type="text" class="search-input" id="search-input" placeholder="Search by name or email..." />
+      </div>
+
+      <div class="customer-count" id="customer-count"></div>
+
+      <table class="admin-table" id="customers-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="sortable" data-sort="name">Name <span class="sort-arrow" id="sort-name"></span></th>
+            <th class="sortable" data-sort="email">Email <span class="sort-arrow" id="sort-email"></span></th>
+            <th class="sortable" data-sort="orders">Orders <span class="sort-arrow" id="sort-orders"></span></th>
+            <th class="sortable" data-sort="spent">Total Spent <span class="sort-arrow" id="sort-spent"></span></th>
+            <th class="sortable" data-sort="date">Last Order <span class="sort-arrow" id="sort-date"></span></th>
+          </tr>
+        </thead>
+        <tbody id="customers-body">
+          <tr><td colspan="6" class="admin-loading">Loading customers...</td></tr>
+        </tbody>
+      </table>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+  <script>
+    const customersBody = document.getElementById("customers-body");
+    const searchInput = document.getElementById("search-input");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const customerCountEl = document.getElementById("customer-count");
+    const toast = document.getElementById("toast");
+
+    let allCustomers = [];
+    let sortField = "spent";
+    let sortAsc = false;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.className = "toast show";
+      setTimeout(function () { toast.classList.remove("show"); }, 3000);
+    }
+
+    // Sort headers
+    document.querySelectorAll(".sortable").forEach(function (th) {
+      th.addEventListener("click", function () {
+        var field = th.dataset.sort;
+        if (sortField === field) {
+          sortAsc = !sortAsc;
+        } else {
+          sortField = field;
+          sortAsc = field === "name" || field === "email";
+        }
+        document.querySelectorAll(".sort-arrow").forEach(function (el) { el.textContent = ""; el.classList.remove("active"); });
+        var arrow = document.getElementById("sort-" + field);
+        if (arrow) { arrow.textContent = sortAsc ? "\u25B2" : "\u25BC"; arrow.classList.add("active"); }
+        loadCustomers();
+      });
+    });
+
+    async function loadCustomers() {
+      try {
+        var params = new URLSearchParams();
+        var search = searchInput.value.trim();
+        if (search) params.set("search", search);
+        params.set("sort", sortField);
+        params.set("dir", sortAsc ? "asc" : "desc");
+        var url = "/api/admin/customers" + (params.toString() ? "?" + params.toString() : "");
+        var res = await fetch(url);
+        allCustomers = await res.json();
+        renderCustomers();
+      } catch (err) {
+        console.error("Failed to load customers:", err);
+        customersBody.innerHTML = '<tr><td colspan="6" class="admin-empty">Failed to load customers.</td></tr>';
+      }
+    }
+
+    function renderCustomers() {
+      customerCountEl.textContent = allCustomers.length + " customer" + (allCustomers.length !== 1 ? "s" : "");
+
+      if (!allCustomers || allCustomers.length === 0) {
+        customersBody.innerHTML = '<tr><td colspan="6" class="admin-empty">No customers found.</td></tr>';
+        return;
+      }
+
+      customersBody.innerHTML = allCustomers.map(function (c, idx) {
+        var orderRows = c.orders.map(function (o) {
+          return '<tr>' +
+            '<td style="font-family:monospace; font-size:0.7rem;">' + (o.id || "").slice(0, 20) + '...</td>' +
+            '<td><span class="badge ' + (STATUS_BADGES[o.status] || "badge-pending") + '">' + (STATUS_LABELS[o.status] || o.status) + '</span></td>' +
+            '<td>' + (o.items || []).reduce(function (s, i) { return s + (i.quantity || 0); }, 0) + '</td>' +
+            '<td>' + formatCurrency(o.amountTotal || 0) + '</td>' +
+            '<td style="color:var(--text-muted); font-size:0.75rem;">' + formatDate(o.createdAt) + '</td>' +
+          '</tr>';
+        }).join("");
+
+        return '<tr class="toggle-row" data-idx="' + idx + '">' +
+          '<td><span class="toggle-arrow" id="c-arrow-' + idx + '">&#9654;</span></td>' +
+          '<td>' + c.name + '</td>' +
+          '<td style="color:var(--text-muted); font-size:0.8rem;">' + c.email + '</td>' +
+          '<td>' + c.orderCount + '</td>' +
+          '<td>' + formatCurrency(c.totalSpent || 0) + '</td>' +
+          '<td style="color:var(--text-muted); font-size:0.8rem;">' + (c.lastOrderDate ? formatDate(c.lastOrderDate) : "N/A") + '</td>' +
+        '</tr>' +
+        '<tr class="customer-expand-row">' +
+          '<td colspan="6">' +
+            '<div class="customer-expand-content" id="c-expand-' + idx + '">' +
+              '<h4 style="font-size:0.65rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Order History</h4>' +
+              (c.orders.length > 0
+                ? '<table class="customer-orders-table"><thead><tr><th>Order ID</th><th>Status</th><th>Items</th><th>Total</th><th>Date</th></tr></thead><tbody>' + orderRows + '</tbody></table>'
+                : '<p style="font-size:0.8rem; color:var(--text-muted);">No orders.</p>'
+              ) +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join("");
+
+      // Toggle handlers
+      document.querySelectorAll(".toggle-row").forEach(function (row) {
+        row.addEventListener("click", function () {
+          var idx = row.dataset.idx;
+          var content = document.getElementById("c-expand-" + idx);
+          var arrow = document.getElementById("c-arrow-" + idx);
+          content.classList.toggle("open");
+          arrow.classList.toggle("open");
+        });
+      });
+    }
+
+    // Export CSV
+    document.getElementById("export-btn").addEventListener("click", function () {
+      if (!allCustomers || allCustomers.length === 0) { showToast("No customers to export"); return; }
+      var headers = ["Name","Email","Orders","Total Spent","Last Order Date"];
+      var rows = allCustomers.map(function (c) {
+        return [
+          '"' + (c.name || "").replace(/"/g, '""') + '"',
+          '"' + c.email + '"',
+          c.orderCount,
+          (c.totalSpent || 0) / 100,
+          c.lastOrderDate || "",
+        ].join(",");
+      });
+      var csv = headers.join(",") + "\n" + rows.join("\n");
+      var blob = new Blob([csv], { type: "text/csv" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "customers-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("CSV exported");
+    });
+
+    // Search
+    let searchTimeout;
+    searchInput.addEventListener("input", function () {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadCustomers, 300);
+    });
+
+    refreshBtn.addEventListener("click", loadCustomers);
+    loadCustomers();
+  </script>
+</body>
+</html>

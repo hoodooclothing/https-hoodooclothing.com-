@@ -1108,15 +1108,24 @@
 
       var imported = 0;
       for (var i = 1; i < lines.length; i++) {
-        // Simple CSV parse (handles quoted fields)
+        // CSV parse (handles quoted fields and escaped quotes "")
         var row = [];
         var current = '';
         var inQuotes = false;
         for (var c = 0; c < lines[i].length; c++) {
           var ch = lines[i][c];
-          if (ch === '"') { inQuotes = !inQuotes; }
-          else if (ch === ',' && !inQuotes) { row.push(current.trim()); current = ''; }
-          else { current += ch; }
+          if (ch === '"') {
+            if (inQuotes && c + 1 < lines[i].length && lines[i][c + 1] === '"') {
+              current += '"';
+              c++; // skip escaped quote
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === ',' && !inQuotes) {
+            row.push(current.trim()); current = '';
+          } else {
+            current += ch;
+          }
         }
         row.push(current.trim());
 

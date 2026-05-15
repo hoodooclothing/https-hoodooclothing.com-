@@ -4,6 +4,7 @@
   "framework": null,
   "rewrites": [
     { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
+    { "source": "/admin/orders/:id", "destination": "/api/admin/orders" },
     { "source": "/admin/orders", "destination": "/api/admin/orders" },
     { "source": "/admin/stats", "destination": "/api/admin/stats" },
     { "source": "/admin/send-code", "destination": "/api/admin/send-code" },
@@ -16,6 +17,8 @@
     { "source": "/api/admin/products", "destination": "/api/admin/products" },
     { "source": "/api/admin/upload-image", "destination": "/api/admin/upload-image" },
     { "source": "/api/admin/customers", "destination": "/api/admin/customers" },
-    { "source": "/api/admin/settings", "destination": "/api/admin/settings" }
+    { "source": "/api/admin/settings", "destination": "/api/admin/settings" },
+    { "source": "/api/admin/send-code", "destination": "/api/admin/send-code" },
+    { "source": "/api/admin/verify-code", "destination": "/api/admin/verify-code" }
   ]
 }

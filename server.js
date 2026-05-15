@@ -344,6 +344,49 @@ app.get("/admin/stats", async (req, res) => {
       statusDistribution[o.status || "pending_fulfillment"] = (statusDistribution[o.status || "pending_fulfillment"] || 0) + 1;
     });
 
+    // Sales by type (from tapstitch metadata)
+    const salesByType = {};
+    orders.forEach((o) => {
+      if (!o.tapstitchMeta) return;
+      (Array.isArray(o.tapstitchMeta) ? o.tapstitchMeta : []).forEach((item) => {
+        const type = item.productType || "other";
+        salesByType[type] = (salesByType[type] || 0) + (item.quantity || 1);
+      });
+    });
+
+    // Revenue by day of week
+    const dayNamesAll = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const revenueByDayOfWeek = dayNamesAll.map((d) => ({ day: d, revenue: 0 }));
+    orders.forEach((o) => {
+      const created = new Date(o.createdAt);
+      revenueByDayOfWeek[created.getDay()].revenue += o.amountTotal || 0;
+    });
+
+    // Customer insights
+    const customerData = {};
+    orders.forEach((o) => {
+      const email = (o.customer?.email || "").toLowerCase();
+      if (!email) return;
+      if (!customerData[email]) {
+        customerData[email] = { email, name: o.customer?.name || "Unknown", orders: 0, spent: 0 };
+      }
+      customerData[email].orders++;
+      customerData[email].spent += o.amountTotal || 0;
+    });
+    const customerList = Object.values(customerData);
+    const repeatCustomers = customerList.filter((c) => c.orders > 1).length;
+    const topCustomers = [...customerList].sort((a, b) => b.spent - a.spent).slice(0, 10);
+
+    // Geographic distribution
+    const geoDistribution = {};
+    orders.forEach((o) => {
+      const addr = o.shipping?.address;
+      if (addr) {
+        const region = addr.state ? `${addr.state}, ${addr.country || "US"}` : (addr.country || "Unknown");
+        geoDistribution[region] = (geoDistribution[region] || 0) + 1;
+      }
+    });
+
     res.json({
       totalRevenue,
       totalOrders,
@@ -351,7 +394,16 @@ app.get("/admin/stats", async (req, res) => {
       itemsSold,
       dailyRevenue,
       topProducts,
+      salesByType,
       statusDistribution,
+      revenueByDayOfWeek,
+      customers: {
+        total: customerList.length,
+        repeat: repeatCustomers,
+        new: customerList.length - repeatCustomers,
+        topCustomers,
+        geoDistribution,
+      },
       previousPeriod: {
         revenue: prevRevenue,
         orders: prevOrders,

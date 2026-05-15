@@ -3666,3 +3666,331 @@ body::after {
   .hero-vline { display: none; }
   .hero-hline { display: none; }
 }
+
+/* ══════════════════════════════════════
+   v4.2 — Design Polish & Refinement
+   ══════════════════════════════════════ */
+
+/* ── Statement Banner ── */
+.statement-banner {
+  padding: 80px 24px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.statement-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.statement-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* ── About Section: editorial grid layout ── */
+.about-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 80px;
+  align-items: start;
+  text-align: left !important;
+  max-width: 1200px !important;
+  padding: 0 24px;
+}
+
+.about-eyebrow {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.about-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.about-text {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text-muted);
+  margin-bottom: 48px;
+}
+
+.about-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 32px;
+}
+
+.about-stat-num {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.about-stat-label {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Product cards: accent line + image depth ── */
+.product-card {
+  position: relative !important;
+}
+
+.product-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-out-expo);
+  z-index: 3;
+}
+
+.product-card:hover::after {
+  transform: scaleX(1);
+}
+
+.product-image {
+  position: relative !important;
+}
+
+.product-image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 35%);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out-expo);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.product-card:hover .product-image::before {
+  opacity: 1;
+}
+
+/* Product name: better weight + tracking */
+.product-name {
+  font-size: 0.9rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em;
+}
+
+/* Product buy button: slide-fill like hero */
+.product-buy {
+  position: relative !important;
+  overflow: hidden !important;
+  z-index: 1;
+  transition: color 0.4s var(--ease-out-expo), border-color 0.3s !important;
+}
+
+.product-buy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: translateX(-101%);
+  transition: transform 0.45s var(--ease-out-expo);
+  z-index: -1;
+}
+
+.product-buy:hover {
+  color: #fff !important;
+  border-color: var(--accent) !important;
+  background: transparent !important;
+}
+
+.product-buy:hover::before {
+  transform: translateX(0);
+}
+
+/* ── Features strip: elevated ── */
+.features-strip {
+  background: var(--bg-card) !important;
+  padding: 40px 24px !important;
+}
+
+.feature-item {
+  padding: 16px !important;
+  transition: background 0.3s var(--ease-out-expo);
+}
+
+.feature-item:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.feature-item strong {
+  color: var(--text) !important;
+  font-size: 0.78rem !important;
+}
+
+/* ── Newsletter: accent frame ── */
+.newsletter-inner {
+  position: relative !important;
+  border: 1px solid rgba(233,69,96,0.1) !important;
+  padding: 56px 48px !important;
+  max-width: 560px !important;
+}
+
+.newsletter-inner::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 32px;
+  right: 32px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+/* ── Footer columns: accent on hover ── */
+.footer-col h4 {
+  position: relative;
+  display: inline-block;
+}
+
+.footer-col h4::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 16px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.4;
+  transition: width 0.4s var(--ease-out-expo);
+}
+
+.footer-col:hover h4::after {
+  width: 100%;
+}
+
+/* ── Input focus: accent highlight ── */
+.newsletter-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(233,69,96,0.08) !important;
+}
+
+.discount-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(233,69,96,0.08) !important;
+}
+
+/* ── Quick view button: sharper ── */
+.quick-view-btn {
+  border-radius: 0 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.12em !important;
+  padding: 12px 28px !important;
+  background: rgba(255,255,255,0.92) !important;
+  transition: background 0.2s, letter-spacing 0.3s var(--ease-out-expo) !important;
+}
+
+.quick-view-btn:hover {
+  letter-spacing: 0.18em !important;
+  background: #fff !important;
+  transform: none !important;
+}
+
+/* ── Smoother reveal stagger for cards ── */
+.product-grid .product-card:nth-child(2) { transition-delay: 0.08s; }
+.product-grid .product-card:nth-child(3) { transition-delay: 0.16s; }
+.product-grid .product-card:nth-child(4) { transition-delay: 0.24s; }
+.product-grid .product-card:nth-child(5) { transition-delay: 0.32s; }
+.product-grid .product-card:nth-child(6) { transition-delay: 0.4s; }
+
+/* ── Section spacing rhythm ── */
+.products-section { padding: 100px 24px !important; }
+.about-section { padding: 120px 24px !important; }
+.newsletter-section { padding: 100px 24px !important; }
+
+/* ── Cart drawer: accent header line ── */
+.cart-header {
+  position: relative;
+}
+
+.cart-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  width: 32px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+/* ── Back-to-top: sharper ── */
+.back-to-top {
+  border-radius: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .about-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+    text-align: center !important;
+  }
+
+  .about-heading {
+    font-size: clamp(2rem, 8vw, 3rem) !important;
+  }
+
+  .about-stats {
+    justify-items: center;
+  }
+
+  .newsletter-inner {
+    padding: 40px 24px !important;
+  }
+
+  .statement-text {
+    font-size: clamp(1.4rem, 5vw, 2rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .about-stats {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .statement-banner {
+    padding: 56px 24px;
+  }
+
+  .newsletter-inner::before { display: none; }
+}

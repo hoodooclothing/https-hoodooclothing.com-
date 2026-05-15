@@ -848,3 +848,23 @@ init();
     requestAnimationFrame(loop);
   })();
 })();
+
+// Watermark: scroll parallax
+(function() {
+  var wm = document.querySelector('.hero-wm');
+  if (!wm || window.innerWidth < 768) return;
+  window.addEventListener('scroll', function() {
+    var y = window.scrollY * 0.12;
+    wm.style.transform = 'translateY(calc(-50% + ' + y.toFixed(1) + 'px)) rotate(-90deg)';
+  }, { passive: true });
+})();
+
+// Grid lines: fade on scroll
+(function() {
+  var lines = document.querySelectorAll('.hero-vline, .hero-hline, .hero-crop');
+  if (!lines.length) return;
+  window.addEventListener('scroll', function() {
+    var fade = 1 - Math.min(window.scrollY / (window.innerHeight * 0.5), 1);
+    lines.forEach(function(el) { el.style.opacity = fade; });
+  }, { passive: true });
+})();

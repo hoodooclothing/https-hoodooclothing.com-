@@ -3407,3 +3407,262 @@ button {
   .hero-scroll-cue { display: none; }
   .hero-content { padding: 0 20px !important; }
 }
+
+/* ══════════════════════════════════════
+   v4.1 — Rich Backgrounds & Texture
+   ══════════════════════════════════════ */
+
+/* ── Re-enable hero-bg-art with new elements ── */
+.hero-bg-art {
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-bg-art::after { display: none !important; }
+
+/* ── Noise grain (hero) ── */
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.05'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* ── Giant rotated watermark ── */
+.hero-wm {
+  position: absolute;
+  right: -2%;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: clamp(10rem, 22vw, 18rem);
+  font-weight: 900;
+  font-family: var(--font);
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.025);
+  white-space: nowrap;
+  user-select: none;
+  transform-origin: center center;
+}
+
+/* ── Construction grid lines ── */
+.hero-vline {
+  position: absolute;
+  width: 1px;
+  top: 0;
+  bottom: 0;
+}
+
+.hero-vline-1 {
+  right: 22%;
+  background: linear-gradient(to bottom, transparent 8%, rgba(255,255,255,0.035) 35%, rgba(255,255,255,0.035) 65%, transparent 92%);
+}
+
+.hero-vline-2 {
+  right: 44%;
+  background: linear-gradient(to bottom, transparent 20%, rgba(255,255,255,0.018) 45%, rgba(255,255,255,0.018) 55%, transparent 80%);
+}
+
+.hero-hline {
+  position: absolute;
+  height: 1px;
+  left: 0;
+  right: 0;
+  top: 68%;
+  background: linear-gradient(to right, transparent 5%, rgba(255,255,255,0.03) 20%, rgba(255,255,255,0.03) 80%, transparent 95%);
+}
+
+/* ── Crop marks (print registration) ── */
+.hero-crop {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  animation: cropReveal 0.8s var(--ease-out-expo) forwards;
+}
+
+.hero-crop::before,
+.hero-crop::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.06);
+}
+
+.hero-crop::before {
+  width: 1px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hero-crop::after {
+  height: 1px;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero-crop-tl { top: 10%; left: 6%; animation-delay: 1.2s; }
+.hero-crop-tr { top: 10%; right: 6%; animation-delay: 1.4s; }
+.hero-crop-bl { bottom: 10%; left: 6%; animation-delay: 1.6s; }
+.hero-crop-br { bottom: 10%; right: 6%; animation-delay: 1.8s; }
+
+@keyframes cropReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Rotated side label ── */
+.hero-side-label {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  font-size: 0.5rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.06);
+  font-weight: 600;
+  font-family: var(--font);
+  white-space: nowrap;
+  opacity: 0;
+  animation: fadeSlideUp 0.8s 1.5s var(--ease-out-expo) forwards;
+}
+
+/* ── Site-wide noise grain ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.05'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* ── Products section: ambient color washes ── */
+.products-section {
+  position: relative !important;
+  overflow: visible;
+}
+
+.products-section::before {
+  content: '';
+  position: absolute;
+  top: -15%;
+  right: -8%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(233,69,96,0.025) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.products-section::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  left: -6%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(139,92,246,0.018) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── About section: ambient wash ── */
+.about-section {
+  position: relative !important;
+  overflow: hidden;
+}
+
+.about-section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(233,69,96,0.02) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── Newsletter section: ambient glow ── */
+.newsletter-section {
+  position: relative !important;
+  overflow: hidden;
+}
+
+.newsletter-section::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(139,92,246,0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Marquee: fade edges ── */
+.marquee-strip {
+  position: relative !important;
+}
+
+.marquee-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--bg-card) 0%, transparent 12%, transparent 88%, var(--bg-card) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Feature strip: accent-tinted borders ── */
+.features-strip {
+  border-top-color: rgba(233,69,96,0.08) !important;
+  border-bottom-color: rgba(233,69,96,0.08) !important;
+}
+
+/* ── Footer: top accent line ── */
+.footer-rich::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(233,69,96,0.12), transparent);
+  pointer-events: none;
+}
+
+.footer-rich {
+  position: relative !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .hero-wm { font-size: clamp(6rem, 28vw, 10rem); right: -8%; }
+  .hero-crop-tr, .hero-crop-br { display: none; }
+  .hero-side-label { display: none; }
+  .hero-vline-2 { display: none; }
+  .products-section::before,
+  .products-section::after { display: none; }
+}
+
+@media (max-width: 560px) {
+  .hero-wm { display: none; }
+  .hero-crop { display: none; }
+  .hero-vline { display: none; }
+  .hero-hline { display: none; }
+}

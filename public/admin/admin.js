@@ -64,6 +64,7 @@ var CMD_ACTIONS = [
   { label: "Go to Products", keys: "G P", action: function () { window.location.href = "/admin/products.html"; } },
   { label: "Go to Customers", keys: "G C", action: function () { window.location.href = "/admin/customers.html"; } },
   { label: "Go to Analytics", keys: "G A", action: function () { window.location.href = "/admin/analytics.html"; } },
+  { label: "Go to Discounts", keys: "G I", action: function () { window.location.href = "/admin/discounts.html"; } },
   { label: "Go to Settings", keys: "G S", action: function () { window.location.href = "/admin/settings.html"; } },
   { label: "View Storefront", keys: "", action: function () { window.open("/", "_blank"); } },
   { label: "Toggle Dark/Light Mode", keys: "", action: function () { toggleTheme(); } },

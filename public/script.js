@@ -637,7 +637,24 @@ function updateCart() {
   });
 
   const total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-  cartTotalEl.textContent = "$" + (total / 100).toFixed(2);
+
+  // Show discount line if applied
+  var existingDiscountLine = document.getElementById("cart-discount-line");
+  if (existingDiscountLine) existingDiscountLine.remove();
+  if (appliedDiscount) {
+    var discAmt = appliedDiscount.type === "percent"
+      ? Math.round((total * appliedDiscount.value) / 100)
+      : Math.min(appliedDiscount.value, total);
+    var discLine = document.createElement("div");
+    discLine.id = "cart-discount-line";
+    discLine.className = "cart-discount-line";
+    discLine.innerHTML = '<span>' + appliedDiscount.code + ' (' + (appliedDiscount.type === "percent" ? appliedDiscount.value + '%' : '$' + (appliedDiscount.value / 100).toFixed(2)) + ')<button class="cart-discount-remove" onclick="removeDiscount()">Remove</button></span><span>-$' + (discAmt / 100).toFixed(2) + '</span>';
+    var totalDiv = cartTotalEl.parentElement;
+    totalDiv.parentElement.insertBefore(discLine, totalDiv);
+    cartTotalEl.textContent = "$" + ((total - discAmt) / 100).toFixed(2);
+  } else {
+    cartTotalEl.textContent = "$" + (total / 100).toFixed(2);
+  }
 
   updateShippingBar();
 }
@@ -657,6 +674,70 @@ cartBtn.addEventListener("click", openCart);
 if (cartBtnMobile) cartBtnMobile.addEventListener("click", openCart);
 cartClose.addEventListener("click", closeCart);
 cartOverlay.addEventListener("click", closeCart);
+
+// ── Discount Code ──
+let appliedDiscount = JSON.parse(sessionStorage.getItem("hoodoo_discount") || "null");
+
+function saveDiscount() {
+  if (appliedDiscount) sessionStorage.setItem("hoodoo_discount", JSON.stringify(appliedDiscount));
+  else sessionStorage.removeItem("hoodoo_discount");
+}
+
+(function() {
+  var applyBtn = document.getElementById("discount-apply-btn");
+  var discountInput = document.getElementById("discount-input");
+  var discountMsg = document.getElementById("discount-msg");
+  if (!applyBtn) return;
+
+  applyBtn.addEventListener("click", async function() {
+    var code = discountInput.value.trim();
+    if (!code) return;
+    applyBtn.disabled = true;
+    applyBtn.textContent = "...";
+    discountMsg.textContent = "";
+    discountMsg.className = "discount-msg";
+
+    var cartTotal = cart.reduce(function(s, i) { return s + i.price * i.quantity; }, 0);
+
+    try {
+      var res = await fetch("/api/validate-discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code, cartTotal: cartTotal }),
+      });
+      var data = await res.json();
+      if (data.valid) {
+        appliedDiscount = data;
+        saveDiscount();
+        discountMsg.textContent = data.type === "percent" ? data.value + "% off applied!" : "$" + (data.value / 100).toFixed(2) + " off applied!";
+        discountMsg.className = "discount-msg success";
+        discountInput.value = "";
+        updateCart();
+      } else {
+        discountMsg.textContent = data.error || "Invalid code";
+        discountMsg.className = "discount-msg error";
+      }
+    } catch (err) {
+      discountMsg.textContent = "Failed to validate code";
+      discountMsg.className = "discount-msg error";
+    } finally {
+      applyBtn.disabled = false;
+      applyBtn.textContent = "Apply";
+    }
+  });
+
+  discountInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") applyBtn.click();
+  });
+})();
+
+function removeDiscount() {
+  appliedDiscount = null;
+  saveDiscount();
+  var msg = document.getElementById("discount-msg");
+  if (msg) { msg.textContent = ""; msg.className = "discount-msg"; }
+  updateCart();
+}
 
 // ── Checkout ──
 checkoutBtn.addEventListener("click", async function() {
@@ -685,7 +766,7 @@ checkoutBtn.addEventListener("click", async function() {
     const res = await fetch("/create-checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: items }),
+      body: JSON.stringify({ items: items, discountCode: appliedDiscount ? appliedDiscount.code : null }),
     });
 
     const data = await res.json();

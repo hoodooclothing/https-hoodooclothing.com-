@@ -1776,6 +1776,95 @@ button {
   width: 0%;
 }
 
+/* ── Cart Discount Code ── */
+.cart-discount {
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.discount-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.discount-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.discount-input:focus {
+  border-color: var(--text-muted);
+}
+
+.discount-input::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted);
+}
+
+.discount-apply-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  font-size: 0.7rem;
+  font-family: var(--font);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.discount-apply-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.discount-msg {
+  font-size: 0.7rem;
+  margin-top: 8px;
+  min-height: 1em;
+}
+
+.discount-msg.error { color: #e44; }
+.discount-msg.success { color: #4caf50; }
+
+.cart-discount-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #4caf50;
+  margin-bottom: 8px;
+}
+
+.cart-discount-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 8px;
+}
+
+.cart-discount-remove:hover {
+  color: #e44;
+}
+
 /* ── Cart Quantity Controls ── */
 .cart-item-qty {
   display: flex;

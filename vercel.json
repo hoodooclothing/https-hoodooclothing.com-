@@ -18,6 +18,8 @@
     { "source": "/api/admin/upload-image", "destination": "/api/admin/upload-image" },
     { "source": "/api/admin/customers", "destination": "/api/admin/customers" },
     { "source": "/api/admin/settings", "destination": "/api/admin/settings" },
+    { "source": "/api/admin/discount-codes", "destination": "/api/admin/discount-codes" },
+    { "source": "/api/validate-discount", "destination": "/api/validate-discount" },
     { "source": "/api/admin/send-code", "destination": "/api/admin/send-code" },
     { "source": "/api/admin/verify-code", "destination": "/api/admin/verify-code" }
   ]

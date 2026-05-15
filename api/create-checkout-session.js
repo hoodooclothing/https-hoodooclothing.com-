@@ -1,11 +1,12 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { getDiscounts, saveDiscounts } = require("../lib/discount-store");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { items } = req.body;
+  const { items, discountCode } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "No items provided" });
@@ -47,9 +48,24 @@ module.exports = async (req, res) => {
   const protocol = host.includes("localhost") ? "http" : "https";
 
   try {
+    // Resolve discount code to Stripe coupon
+    let discounts = [];
+    if (discountCode) {
+      try {
+        const allDiscounts = await getDiscounts();
+        const dc = allDiscounts.find(d => d.code.toUpperCase() === discountCode.toUpperCase() && d.active);
+        if (dc && dc.stripeCouponId) {
+          discounts = [{ coupon: dc.stripeCouponId }];
+          dc.usedCount = (dc.usedCount || 0) + 1;
+          await saveDiscounts(allDiscounts);
+        }
+      } catch (e) { console.warn("Discount lookup failed:", e.message); }
+    }
+
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
       mode: "payment",
+      ...(discounts.length > 0 ? { discounts } : {}),
       shipping_address_collection: {
         allowed_countries: [
           "US", "CA", "GB", "AU", "DE", "FR", "NL", "SE", "DK", "NO", "JP",

@@ -148,7 +148,7 @@ app.use(express.static("public"));
 
 // ── Create Checkout Session ──
 app.post("/create-checkout-session", async (req, res) => {
-  const { items } = req.body;
+  const { items, discountCode } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "No items provided" });
@@ -189,9 +189,25 @@ app.post("/create-checkout-session", async (req, res) => {
     const exp = sr.express || { amount: 1800, currency: "usd", displayName: "Express Shipping", minDays: 2, maxDays: 4 };
     const storeCurrency = settings?.currency || "usd";
 
+    // Resolve discount code to Stripe coupon
+    let discounts = [];
+    if (discountCode) {
+      try {
+        const allDiscounts = await getDiscounts();
+        const dc = allDiscounts.find(d => d.code.toUpperCase() === discountCode.toUpperCase() && d.active);
+        if (dc && dc.stripeCouponId) {
+          discounts = [{ coupon: dc.stripeCouponId }];
+          // Increment usage
+          dc.usedCount = (dc.usedCount || 0) + 1;
+          await saveDiscounts(allDiscounts);
+        }
+      } catch (e) { console.warn("Discount lookup failed:", e.message); }
+    }
+
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
       mode: "payment",
+      ...(discounts.length > 0 ? { discounts } : {}),
       shipping_address_collection: {
         allowed_countries: [
           "US",
@@ -456,6 +472,118 @@ app.patch("/admin/orders/:id", (req, res) => {
   order.updatedAt = new Date().toISOString();
   writeOrders(orders);
   res.json(order);
+});
+
+// ── Discount Codes API (local dev) ──
+const { getDiscounts, saveDiscounts } = require("./lib/discount-store");
+
+app.get("/api/admin/discount-codes", async (req, res) => {
+  try {
+    const discounts = await getDiscounts();
+    res.json(discounts);
+  } catch (err) {
+    console.error("Discounts read error:", err.message);
+    res.status(500).json({ error: "Failed to fetch discounts" });
+  }
+});
+
+app.post("/api/admin/discount-codes", async (req, res) => {
+  try {
+    const { code, type, value, minOrder, maxUses, expiresAt } = req.body || {};
+    if (!code || !type || !value) return res.status(400).json({ error: "Code, type, and value are required" });
+    if (type !== "percent" && type !== "fixed") return res.status(400).json({ error: "Type must be 'percent' or 'fixed'" });
+
+    const discounts = await getDiscounts();
+    if (discounts.find(d => d.code.toUpperCase() === code.toUpperCase())) {
+      return res.status(400).json({ error: "A discount code with this name already exists" });
+    }
+
+    // Create Stripe coupon
+    const couponParams = { name: code.toUpperCase() };
+    if (type === "percent") { couponParams.percent_off = Number(value); }
+    else { couponParams.amount_off = Number(value); couponParams.currency = "usd"; }
+    if (maxUses) couponParams.max_redemptions = Number(maxUses);
+    if (expiresAt) couponParams.redeem_by = Math.floor(new Date(expiresAt).getTime() / 1000);
+
+    const stripeCoupon = await stripe.coupons.create(couponParams);
+
+    const discount = {
+      id: "DSC-" + Date.now(),
+      code: code.toUpperCase(),
+      type,
+      value: Number(value),
+      minOrder: minOrder ? Number(minOrder) : 0,
+      maxUses: maxUses ? Number(maxUses) : 0,
+      usedCount: 0,
+      expiresAt: expiresAt || null,
+      active: true,
+      stripeCouponId: stripeCoupon.id,
+      createdAt: new Date().toISOString(),
+    };
+    discounts.push(discount);
+    await saveDiscounts(discounts);
+    res.status(201).json(discount);
+  } catch (err) {
+    console.error("Discount create error:", err.message);
+    res.status(500).json({ error: "Failed to create discount code" });
+  }
+});
+
+app.delete("/api/admin/discount-codes", async (req, res) => {
+  try {
+    const { id } = req.body || {};
+    if (!id) return res.status(400).json({ error: "Discount id is required" });
+    const discounts = await getDiscounts();
+    const idx = discounts.findIndex(d => d.id === id);
+    if (idx === -1) return res.status(404).json({ error: "Discount not found" });
+    const removed = discounts[idx];
+    if (removed.stripeCouponId) {
+      try { await stripe.coupons.del(removed.stripeCouponId); } catch (e) { console.warn("Stripe coupon delete:", e.message); }
+    }
+    discounts.splice(idx, 1);
+    await saveDiscounts(discounts);
+    res.json({ success: true, deleted: removed });
+  } catch (err) {
+    console.error("Discount delete error:", err.message);
+    res.status(500).json({ error: "Failed to delete discount" });
+  }
+});
+
+app.patch("/api/admin/discount-codes", async (req, res) => {
+  try {
+    const { id, active } = req.body || {};
+    if (!id) return res.status(400).json({ error: "Discount id is required" });
+    const discounts = await getDiscounts();
+    const discount = discounts.find(d => d.id === id);
+    if (!discount) return res.status(404).json({ error: "Discount not found" });
+    discount.active = !!active;
+    await saveDiscounts(discounts);
+    res.json(discount);
+  } catch (err) {
+    console.error("Discount update error:", err.message);
+    res.status(500).json({ error: "Failed to update discount" });
+  }
+});
+
+// ── Validate Discount (public) ──
+app.post("/api/validate-discount", async (req, res) => {
+  const { code, cartTotal } = req.body || {};
+  if (!code) return res.status(400).json({ error: "Discount code is required" });
+  try {
+    const discounts = await getDiscounts();
+    const discount = discounts.find(d => d.code.toUpperCase() === code.toUpperCase() && d.active);
+    if (!discount) return res.json({ valid: false, error: "Invalid discount code" });
+    if (discount.expiresAt && new Date(discount.expiresAt) < new Date()) return res.json({ valid: false, error: "This code has expired" });
+    if (discount.maxUses > 0 && discount.usedCount >= discount.maxUses) return res.json({ valid: false, error: "This code has reached its usage limit" });
+    if (discount.minOrder > 0 && cartTotal < discount.minOrder) return res.json({ valid: false, error: "Minimum order of $" + (discount.minOrder / 100).toFixed(2) + " required" });
+    let discountAmount = 0;
+    if (discount.type === "percent") { discountAmount = Math.round((cartTotal * discount.value) / 100); }
+    else { discountAmount = Math.min(discount.value, cartTotal); }
+    res.json({ valid: true, code: discount.code, type: discount.type, value: discount.value, discountAmount, stripeCouponId: discount.stripeCouponId });
+  } catch (err) {
+    console.error("Validate discount error:", err.message);
+    res.status(500).json({ error: "Failed to validate discount code" });
+  }
 });
 
 // ── Settings API (local dev) ──

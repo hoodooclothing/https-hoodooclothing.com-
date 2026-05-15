@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HOODOO &mdash; Modern Essentials</title>
+  <meta name="description" content="Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -12,8 +13,12 @@
 </head>
 <body>
 
-  <!-- Brand Banner -->
-  <div class="shipping-banner">HOODOO</div>
+  <!-- Announcement Bar -->
+  <div class="announcement-bar" id="announcement-bar">
+    <span class="announcement-msg active">Free Shipping on Orders Over $100</span>
+    <span class="announcement-msg">New Collection &mdash; Shop Now</span>
+    <span class="announcement-msg">Premium Quality. Minimal Design.</span>
+  </div>
 
   <!-- Navigation -->
   <nav class="nav">
@@ -33,39 +38,147 @@
         <li><a href="#products">Shop</a></li>
         <li><a href="#about">About</a></li>
         <li>
-          <button class="cart-btn" id="cart-btn">
-            Cart (<span id="cart-count">0</span>)
+          <button class="nav-icon-btn" id="search-btn" aria-label="Search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </li>
+        <li>
+          <button class="cart-btn" id="cart-btn" aria-label="Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            <span class="cart-badge" id="cart-count">0</span>
           </button>
         </li>
       </ul>
+      <div class="nav-actions">
+        <button class="nav-icon-btn" id="search-btn-mobile" aria-label="Search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="cart-btn" id="cart-btn-mobile" aria-label="Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="cart-badge" id="cart-count-mobile">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+      </div>
     </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <button class="mobile-menu-close" id="mobile-menu-close">&times;</button>
+    <nav class="mobile-menu-nav">
+      <a href="#products" class="mobile-menu-link">Shop</a>
+      <a href="#about" class="mobile-menu-link">About</a>
+    </nav>
+  </div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-container">
+      <div class="search-input-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Search products..." autocomplete="off" />
+        <button class="search-close" id="search-close">&times;</button>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
 
   <!-- Hero -->
   <header class="hero">
     <div class="hero-content">
-      <p class="hero-sub">New Collection</p>
-      <h1 class="hero-title">Less noise.<br/>More style.</h1>
-      <p class="hero-desc">Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
-      <a href="#products" class="btn btn-primary">Shop Now</a>
+      <p class="hero-sub reveal">New Collection</p>
+      <h1 class="hero-title reveal reveal-delay-1">Less noise.<br/>More style.</h1>
+      <p class="hero-desc reveal reveal-delay-2">Timeless essentials designed for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
+      <a href="#products" class="btn btn-primary reveal reveal-delay-3">Shop Now</a>
     </div>
   </header>
 
+  <!-- Trust Badges -->
+  <section class="features-strip">
+    <div class="features-strip-inner">
+      <div class="feature-item reveal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <strong>Secure Checkout</strong>
+          <span>256-bit SSL encryption</span>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div>
+          <strong>Free Shipping</strong>
+          <span>On orders over $100</span>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-2">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        <div>
+          <strong>Easy Returns</strong>
+          <span>30-day return policy</span>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-3">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <div>
+          <strong>Premium Quality</strong>
+          <span>Crafted to last</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Products -->
   <section id="products" class="products-section">
-    <h2 class="section-title">Essentials</h2>
+    <h2 class="section-title reveal">Essentials</h2>
+    <div class="product-filters reveal" id="product-filters">
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="filter-tab active" data-filter="all">All</button>
+      </div>
+      <select class="sort-select" id="sort-select">
+        <option value="default">Sort By</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="name-az">Name: A&ndash;Z</option>
+        <option value="name-za">Name: Z&ndash;A</option>
+      </select>
+    </div>
     <div class="product-grid" id="product-grid">
-      <!-- Rendered by JS -->
+      <div class="product-card skeleton-card"><div class="skeleton-image"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="product-card skeleton-card"><div class="skeleton-image"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="product-card skeleton-card"><div class="skeleton-image"></div><div class="skeleton-info"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
   </section>
 
   <!-- About -->
   <section id="about" class="about-section">
     <div class="about-inner">
-      <h2 class="section-title">Our Philosophy</h2>
-      <p>We believe great clothing starts with restraint. Every piece in the Hoodoo collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>
+      <h2 class="section-title reveal">Our Philosophy</h2>
+      <p class="reveal">We believe great clothing starts with restraint. Every piece in the Hoodoo collection is designed to be versatile, durable, and effortlessly stylish. No logos. No trends. Just quality.</p>
     </div>
   </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter-section">
+    <div class="newsletter-inner reveal">
+      <h2 class="newsletter-title">Stay in the Loop</h2>
+      <p class="newsletter-desc">Be the first to know about new drops, exclusive offers, and style tips.</p>
+      <form class="newsletter-form" id="newsletter-form">
+        <input type="email" class="newsletter-input" id="newsletter-email" placeholder="Enter your email" required />
+        <button type="submit" class="btn btn-primary newsletter-btn">Subscribe</button>
+      </form>
+      <p class="newsletter-note" id="newsletter-note"></p>
+    </div>
+  </section>
+
+  <!-- Quick View Modal -->
+  <div class="quick-view-overlay" id="quick-view-overlay">
+    <div class="quick-view-modal" id="quick-view-modal">
+      <button class="quick-view-close" id="quick-view-close">&times;</button>
+      <div class="quick-view-body" id="quick-view-body"></div>
+    </div>
+  </div>
 
   <!-- Cart Drawer -->
   <div class="cart-overlay" id="cart-overlay"></div>
@@ -73,6 +186,10 @@
     <div class="cart-header">
       <h3>Your Cart</h3>
       <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-shipping-bar" id="cart-shipping-bar" style="display:none;">
+      <div class="shipping-bar-text" id="shipping-bar-text"></div>
+      <div class="shipping-bar-track"><div class="shipping-bar-fill" id="shipping-bar-fill"></div></div>
     </div>
     <div class="cart-items" id="cart-items">
       <p class="cart-empty">Your cart is empty.</p>
@@ -85,22 +202,64 @@
     </div>
   </aside>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
-    <a href="#" id="admin-gate-link" style="font-size:0.55rem;color:#333;text-decoration:none;margin-top:8px;display:inline-block;">Manage</a>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- Rich Footer -->
+  <footer class="footer-rich">
+    <div class="footer-inner">
+      <div class="footer-col footer-brand">
+        <span class="hoodoo-mark footer-logo">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <p>Timeless essentials for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <a href="#products">All Products</a>
+        <a href="#products">New Arrivals</a>
+        <a href="#products">Best Sellers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <a href="#about">About Us</a>
+        <a href="mailto:support@hooodooclothing.com">Contact</a>
+        <a href="#about">Shipping &amp; Returns</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="footer-social">
+          <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></a>
+        </div>
+        <p class="footer-email">hello@hooodooclothing.com</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+      <a href="#" id="admin-gate-link" class="footer-admin-link">Manage</a>
+    </div>
   </footer>
 
   <!-- Admin Gate Modal -->
   <div id="admin-gate" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;">
     <div style="background:#111;border:1px solid #222;border-radius:8px;padding:32px;max-width:360px;width:90%;text-align:center;">
       <h3 style="font-size:1rem;font-weight:400;margin-bottom:16px;">Admin Access</h3>
-      <!-- Step 1: Email -->
       <div id="step-email">
         <input type="email" id="admin-email" placeholder="Enter admin email" style="width:100%;padding:10px 14px;font-size:0.85rem;font-family:inherit;color:#fff;background:#0a0a0a;border:1px solid #333;border-radius:6px;margin-bottom:12px;box-sizing:border-box;" />
         <button id="admin-send" class="btn btn-primary" style="width:100%;padding:10px;">Send Code</button>
       </div>
-      <!-- Step 2: Code -->
       <div id="step-code" style="display:none;">
         <p style="color:#888;font-size:0.8rem;margin-bottom:16px;">Enter the 6-digit code sent to your email.</p>
         <input type="text" id="admin-code" placeholder="000000" maxlength="6" style="width:100%;padding:12px 14px;font-size:1.4rem;font-family:monospace;letter-spacing:8px;text-align:center;color:#fff;background:#0a0a0a;border:1px solid #333;border-radius:6px;margin-bottom:12px;box-sizing:border-box;" />
@@ -173,7 +332,6 @@
         sendBtn.textContent = "Send Code";
       }
 
-      // Click "Manage" link
       link.addEventListener("click", function(e) {
         e.preventDefault();
         var saved = getCookie("hoodoo_admin");
@@ -186,7 +344,6 @@
         emailInput.focus();
       });
 
-      // Send code
       async function sendCode() {
         var email = emailInput.value.trim().toLowerCase();
         if (!email) return;
@@ -225,7 +382,6 @@
         if (e.key === "Enter") sendCode();
       });
 
-      // Verify code
       async function verifyCode() {
         var code = codeInput.value.trim();
         if (code.length !== 6) {
@@ -263,7 +419,6 @@
         if (e.key === "Enter") verifyCode();
       });
 
-      // Resend
       resendBtn.addEventListener("click", function() {
         stepEmail.style.display = "block";
         stepCode.style.display = "none";
@@ -273,7 +428,6 @@
         emailInput.focus();
       });
 
-      // Cancel
       cancelBtn.addEventListener("click", function() {
         gate.style.display = "none";
         resetModal();

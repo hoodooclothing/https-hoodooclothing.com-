@@ -11,6 +11,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Announcement Bar -->
+  <div class="announcement-bar">
+    <span class="announcement-msg active">Free Shipping on Orders Over $100</span>
+  </div>
+
   <nav class="nav">
     <div class="nav-inner">
       <a href="/" class="logo">
@@ -28,14 +33,25 @@
   </nav>
 
   <main class="status-page">
-    <div class="status-icon status-cancel">&#10005;</div>
+    <div class="status-icon-animated cancel">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" class="status-x"/>
+        <line x1="6" y1="6" x2="18" y2="18" class="status-x"/>
+      </svg>
+    </div>
     <h1>Order Cancelled</h1>
-    <p>Your payment was not completed. No charges were made. Feel free to try again whenever you're ready.</p>
-    <a href="/" class="btn btn-primary">Back to Shop</a>
+    <p>Your payment was not completed. No charges were made. Your items are still in your cart if you'd like to try again.</p>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <a href="/" class="btn btn-primary">Back to Shop</a>
+      <a href="/" class="btn btn-secondary" onclick="document.dispatchEvent(new Event('open-cart'));return true;">View Cart</a>
+    </div>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+  <footer class="footer-rich" style="margin-top:auto;">
+    <div class="footer-bottom">
+      <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+    </div>
   </footer>
 
   <script src="analytics.js"></script>

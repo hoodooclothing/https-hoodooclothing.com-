@@ -1,5 +1,6 @@
 // ── Product Catalog (fetched from API) ──
 let products = [];
+const FREE_SHIPPING_THRESHOLD = 10000;
 
 // ── Color Variant Helpers ──
 function getVariant(product, color) {
@@ -27,7 +28,9 @@ function saveCart() {
 // ── DOM Elements ──
 const pdpContainer = document.getElementById("pdp-container");
 const cartBtn = document.getElementById("cart-btn");
+const cartBtnMobile = document.getElementById("cart-btn-mobile");
 const cartCount = document.getElementById("cart-count");
+const cartCountMobile = document.getElementById("cart-count-mobile");
 const cartDrawer = document.getElementById("cart-drawer");
 const cartOverlay = document.getElementById("cart-overlay");
 const cartClose = document.getElementById("cart-close");
@@ -38,6 +41,44 @@ const checkoutBtn = document.getElementById("checkout-btn");
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightbox-img");
 const lightboxClose = document.getElementById("lightbox-close");
+const lightboxPrev = document.getElementById("lightbox-prev");
+const lightboxNext = document.getElementById("lightbox-next");
+const cartShippingBar = document.getElementById("cart-shipping-bar");
+const shippingBarText = document.getElementById("shipping-bar-text");
+const shippingBarFill = document.getElementById("shipping-bar-fill");
+
+// ── Announcement Bar Rotation ──
+(function() {
+  const msgs = document.querySelectorAll(".announcement-msg");
+  if (msgs.length <= 1) return;
+  let idx = 0;
+  setInterval(function() {
+    msgs[idx].classList.remove("active");
+    idx = (idx + 1) % msgs.length;
+    msgs[idx].classList.add("active");
+  }, 4000);
+})();
+
+// ── Toast Notifications ──
+function showToast(message) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = '<span class="toast-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>' + message;
+  container.appendChild(toast);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toast.classList.add("show"); });
+  });
+  setTimeout(function() {
+    toast.classList.remove("show");
+    setTimeout(function() { toast.remove(); }, 350);
+  }, 3000);
+}
+
+// ── Lightbox State ──
+let lightboxImages = [];
+let lightboxIndex = 0;
 
 // ── Load Product Detail ──
 function getProductId() {
@@ -47,20 +88,25 @@ function getProductId() {
 
 function renderProductDetail() {
   const id = getProductId();
-  const product = products.find((p) => p.id === id);
+  const product = products.find(function(p) { return p.id === id; });
 
   if (!product) {
-    pdpContainer.innerHTML = `
-      <div class="pdp-not-found">
-        <h1>Product Not Found</h1>
-        <p>Sorry, we couldn't find that product.</p>
-        <a href="/" class="btn btn-primary">Back to Shop</a>
-      </div>
-    `;
+    pdpContainer.innerHTML =
+      '<div class="pdp-not-found">' +
+        '<h1>Product Not Found</h1>' +
+        '<p>Sorry, we couldn\'t find that product.</p>' +
+        '<a href="/" class="btn btn-primary">Back to Shop</a>' +
+      '</div>';
     return;
   }
 
-  document.title = `${product.name} — HOODOO`;
+  document.title = product.name + " — HOODOO";
+
+  // Update meta description if SEO fields exist
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) {
+    metaDesc.setAttribute("content", product.seoDescription || product.description);
+  }
 
   const colors = getColors(product);
   const firstVariant = getVariant(product, colors[0]);
@@ -70,68 +116,95 @@ function renderProductDetail() {
 
   const images = [initImage];
   if (initImageBack) images.push(initImageBack);
+  lightboxImages = images.slice();
 
-  pdpContainer.innerHTML = `
-    <div class="pdp-breadcrumb">
-      <a href="/">Home</a> / <a href="/#products">Shop</a> / <span>${product.name}</span>
-    </div>
-    <div class="pdp-layout">
-      <div class="pdp-images">
-        <div class="pdp-main-image" id="pdp-main-image">
-          <img src="${initImage}" alt="${product.name}" class="pdp-img clickable-img" data-src="${initImage}" />
-        </div>
-        ${images.length > 1 ? `
-          <div class="pdp-thumbs" id="pdp-thumbs">
-            ${images.map((img, i) => `
-              <div class="pdp-thumb ${i === 0 ? "active" : ""}" data-src="${img}">
-                <img src="${img}" alt="${product.name}" />
-              </div>
-            `).join("")}
-          </div>
-        ` : '<div class="pdp-thumbs" id="pdp-thumbs"></div>'}
-      </div>
-      <div class="pdp-details">
-        <h1 class="pdp-title">${product.name}</h1>
-        <p class="pdp-price" id="pdp-price-text">$${(initPrice / 100).toFixed(2)}</p>
-        <p class="pdp-description">${product.description}</p>
-        <div class="pdp-variants">
-          <div class="pdp-variant-group">
-            <label class="variant-label">Size</label>
-            <div class="pdp-size-options" id="pdp-sizes">
-              ${product.sizes.map((s, i) => `
-                <button class="pdp-size-btn ${i === 0 ? "active" : ""}" data-size="${s}">${s}</button>
-              `).join("")}
-            </div>
-          </div>
-          ${colors.length > 1 ? `
-            <div class="pdp-variant-group">
-              <label class="variant-label">Color</label>
-              <div class="pdp-color-options" id="pdp-colors">
-                ${colors.map((c, i) => `
-                  <button class="pdp-color-btn ${i === 0 ? "active" : ""}" data-color="${c}">${c}</button>
-                `).join("")}
-              </div>
-            </div>
-          ` : `<input type="hidden" id="pdp-single-color" value="${colors[0]}" />`}
-        </div>
+  pdpContainer.innerHTML =
+    '<div class="pdp-breadcrumb">' +
+      '<a href="/">Home</a> / <a href="/#products">Shop</a> / <span>' + product.name + '</span>' +
+    '</div>' +
+    '<div class="pdp-layout">' +
+      '<div class="pdp-images">' +
+        '<div class="pdp-main-image" id="pdp-main-image">' +
+          '<img src="' + initImage + '" alt="' + product.name + '" class="pdp-img clickable-img" data-src="' + initImage + '" />' +
+        '</div>' +
+        (images.length > 1 ?
+          '<div class="pdp-thumbs" id="pdp-thumbs">' +
+            images.map(function(img, i) {
+              return '<div class="pdp-thumb ' + (i === 0 ? 'active' : '') + '" data-src="' + img + '"><img src="' + img + '" alt="' + product.name + '" /></div>';
+            }).join("") +
+          '</div>'
+        : '<div class="pdp-thumbs" id="pdp-thumbs"></div>') +
+      '</div>' +
+      '<div class="pdp-details">' +
+        '<h1 class="pdp-title">' + product.name + '</h1>' +
+        '<p class="pdp-price" id="pdp-price-text">$' + (initPrice / 100).toFixed(2) + '</p>' +
+        '<p class="pdp-description">' + product.description + '</p>' +
+        '<div class="pdp-variants">' +
+          '<div class="pdp-variant-group">' +
+            '<label class="variant-label">Size</label>' +
+            '<div class="pdp-size-options" id="pdp-sizes">' +
+              product.sizes.map(function(s, i) {
+                return '<button class="pdp-size-btn ' + (i === 0 ? 'active' : '') + '" data-size="' + s + '">' + s + '</button>';
+              }).join("") +
+            '</div>' +
+          '</div>' +
+          (colors.length > 1 ?
+            '<div class="pdp-variant-group">' +
+              '<label class="variant-label">Color</label>' +
+              '<div class="pdp-color-options" id="pdp-colors">' +
+                colors.map(function(c, i) {
+                  return '<button class="pdp-color-btn ' + (i === 0 ? 'active' : '') + '" data-color="' + c + '">' + c + '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>'
+          : '<input type="hidden" id="pdp-single-color" value="' + colors[0] + '" />') +
+        '</div>' +
+        '<button class="btn btn-primary btn-full pdp-add-to-cart" id="pdp-add-to-cart">Add to Cart</button>' +
 
-        <button class="btn btn-primary btn-full pdp-add-to-cart" id="pdp-add-to-cart">Add to Cart</button>
+        // Share buttons
+        '<div class="pdp-share">' +
+          '<span class="pdp-share-label">Share</span>' +
+          '<button class="pdp-share-btn" id="share-copy" title="Copy link">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>' +
+          '</button>' +
+          '<button class="pdp-share-btn" id="share-native" title="Share">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+          '</button>' +
+        '</div>' +
 
-        <div class="pdp-meta">
-          <div class="pdp-meta-row"><span>Type</span><span>${product.productType}</span></div>
-          <div class="pdp-meta-row"><span>Print Method</span><span>${product.printMethod.toUpperCase()}</span></div>
-          <div class="pdp-meta-row"><span>Product ID</span><span>${product.tapstitchProductId}</span></div>
-        </div>
-      </div>
-    </div>
-  `;
+        // Accordion details
+        '<div class="pdp-accordions">' +
+          '<div class="pdp-accordion">' +
+            '<button class="pdp-accordion-header"><span>Shipping & Returns</span><span class="pdp-accordion-icon">+</span></button>' +
+            '<div class="pdp-accordion-body"><div class="pdp-accordion-content">Free shipping on orders over $100. Standard shipping typically takes 5-10 business days. Express shipping available at checkout. Returns accepted within 30 days of delivery.</div></div>' +
+          '</div>' +
+          '<div class="pdp-accordion">' +
+            '<button class="pdp-accordion-header"><span>Care Instructions</span><span class="pdp-accordion-icon">+</span></button>' +
+            '<div class="pdp-accordion-body"><div class="pdp-accordion-content">Machine wash cold with like colors. Tumble dry low. Do not bleach. Iron on low heat if needed. See garment label for specific care instructions.</div></div>' +
+          '</div>' +
+          '<div class="pdp-accordion">' +
+            '<button class="pdp-accordion-header"><span>Details</span><span class="pdp-accordion-icon">+</span></button>' +
+            '<div class="pdp-accordion-body"><div class="pdp-accordion-content">' +
+              'Type: ' + product.productType + '<br/>' +
+              'Print: ' + (product.printMethod || '').toUpperCase() + '<br/>' +
+              'SKU: ' + (product.sku || product.tapstitchProductId || 'N/A') +
+            '</div></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // Related products
+    '<div class="pdp-related" id="pdp-related"></div>';
+
+  // ── Wire up interactions ──
 
   // Thumbnail clicks
   const thumbs = pdpContainer.querySelectorAll(".pdp-thumb");
   const mainImage = pdpContainer.querySelector(".pdp-img");
-  thumbs.forEach((thumb) => {
-    thumb.addEventListener("click", () => {
-      thumbs.forEach((t) => t.classList.remove("active"));
+  thumbs.forEach(function(thumb) {
+    thumb.addEventListener("click", function() {
+      thumbs.forEach(function(t) { t.classList.remove("active"); });
       thumb.classList.add("active");
       mainImage.src = thumb.dataset.src;
       mainImage.dataset.src = thumb.dataset.src;
@@ -139,74 +212,134 @@ function renderProductDetail() {
   });
 
   // Size selector
-  const sizeBtns = pdpContainer.querySelectorAll(".pdp-size-btn");
-  sizeBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      sizeBtns.forEach((b) => b.classList.remove("active"));
+  var sizeBtns = pdpContainer.querySelectorAll(".pdp-size-btn");
+  sizeBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      sizeBtns.forEach(function(b) { b.classList.remove("active"); });
       btn.classList.add("active");
     });
   });
 
-  // Color selector — swap images, thumbnails, and price
-  const colorBtns = pdpContainer.querySelectorAll(".pdp-color-btn");
-  colorBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      colorBtns.forEach((b) => b.classList.remove("active"));
+  // Color selector
+  var colorBtns = pdpContainer.querySelectorAll(".pdp-color-btn");
+  colorBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      colorBtns.forEach(function(b) { b.classList.remove("active"); });
       btn.classList.add("active");
 
-      const variant = getVariant(product, btn.dataset.color);
-      const vImage = variant.image || product.image;
-      const vImageBack = variant.imageBack || "";
-      const vPrice = variant.price || product.price;
+      var variant = getVariant(product, btn.dataset.color);
+      var vImage = variant.image || product.image;
+      var vImageBack = variant.imageBack || "";
+      var vPrice = variant.price || product.price;
 
       // Update main image
-      const mainImg = pdpContainer.querySelector(".pdp-img");
-      if (mainImg) {
-        mainImg.src = vImage;
-        mainImg.dataset.src = vImage;
-      }
+      var mainImg = pdpContainer.querySelector(".pdp-img");
+      if (mainImg) { mainImg.src = vImage; mainImg.dataset.src = vImage; }
 
       // Rebuild thumbnails
-      const thumbsContainer = document.getElementById("pdp-thumbs");
+      var thumbImages = [vImage];
+      if (vImageBack) thumbImages.push(vImageBack);
+      lightboxImages = thumbImages.slice();
+
+      var thumbsContainer = document.getElementById("pdp-thumbs");
       if (thumbsContainer) {
-        const thumbImages = [vImage];
-        if (vImageBack) thumbImages.push(vImageBack);
-        thumbsContainer.innerHTML = thumbImages.map((img, i) => `
-          <div class="pdp-thumb ${i === 0 ? "active" : ""}" data-src="${img}">
-            <img src="${img}" alt="${product.name}" />
-          </div>
-        `).join("");
-        // Re-wire thumb clicks
-        thumbsContainer.querySelectorAll(".pdp-thumb").forEach((thumb) => {
-          thumb.addEventListener("click", () => {
-            thumbsContainer.querySelectorAll(".pdp-thumb").forEach((t) => t.classList.remove("active"));
+        thumbsContainer.innerHTML = thumbImages.map(function(img, i) {
+          return '<div class="pdp-thumb ' + (i === 0 ? 'active' : '') + '" data-src="' + img + '"><img src="' + img + '" alt="' + product.name + '" /></div>';
+        }).join("");
+        thumbsContainer.querySelectorAll(".pdp-thumb").forEach(function(thumb) {
+          thumb.addEventListener("click", function() {
+            thumbsContainer.querySelectorAll(".pdp-thumb").forEach(function(t) { t.classList.remove("active"); });
             thumb.classList.add("active");
-            const mi = pdpContainer.querySelector(".pdp-img");
+            var mi = pdpContainer.querySelector(".pdp-img");
             if (mi) { mi.src = thumb.dataset.src; mi.dataset.src = thumb.dataset.src; }
           });
         });
       }
 
       // Update price
-      const priceEl = document.getElementById("pdp-price-text");
+      var priceEl = document.getElementById("pdp-price-text");
       if (priceEl) priceEl.textContent = "$" + (vPrice / 100).toFixed(2);
     });
   });
 
   // Add to cart
-  document.getElementById("pdp-add-to-cart").addEventListener("click", () => {
-    const activeSize = pdpContainer.querySelector(".pdp-size-btn.active");
-    const activeColor = pdpContainer.querySelector(".pdp-color-btn.active");
-    const singleColor = pdpContainer.querySelector("#pdp-single-color");
-    const size = activeSize ? activeSize.dataset.size : product.sizes[0];
-    const color = activeColor ? activeColor.dataset.color : (singleColor ? singleColor.value : product.colors[0]);
+  document.getElementById("pdp-add-to-cart").addEventListener("click", function() {
+    var activeSize = pdpContainer.querySelector(".pdp-size-btn.active");
+    var activeColor = pdpContainer.querySelector(".pdp-color-btn.active");
+    var singleColor = pdpContainer.querySelector("#pdp-single-color");
+    var size = activeSize ? activeSize.dataset.size : product.sizes[0];
+    var color = activeColor ? activeColor.dataset.color : (singleColor ? singleColor.value : colors[0]);
     addToCart(product.id, size, color);
   });
 
   // Lightbox on image click
-  mainImage.addEventListener("click", () => {
-    openLightbox(mainImage.src);
+  mainImage.addEventListener("click", function() {
+    lightboxIndex = lightboxImages.indexOf(mainImage.src);
+    if (lightboxIndex < 0) lightboxIndex = 0;
+    openLightbox(lightboxImages[lightboxIndex]);
   });
+
+  // Share buttons
+  var shareCopy = document.getElementById("share-copy");
+  var shareNative = document.getElementById("share-native");
+
+  if (shareCopy) {
+    shareCopy.addEventListener("click", function() {
+      navigator.clipboard.writeText(window.location.href).then(function() {
+        showToast("Link copied to clipboard");
+      });
+    });
+  }
+
+  if (shareNative) {
+    if (navigator.share) {
+      shareNative.addEventListener("click", function() {
+        navigator.share({ title: product.name, url: window.location.href });
+      });
+    } else {
+      shareNative.style.display = "none";
+    }
+  }
+
+  // Accordions
+  pdpContainer.querySelectorAll(".pdp-accordion-header").forEach(function(header) {
+    header.addEventListener("click", function() {
+      var accordion = header.parentElement;
+      accordion.classList.toggle("open");
+    });
+  });
+
+  // Related products
+  renderRelatedProducts(product);
+}
+
+// ── Related Products ──
+function renderRelatedProducts(currentProduct) {
+  var container = document.getElementById("pdp-related");
+  if (!container) return;
+
+  var related = products.filter(function(p) {
+    return p.id !== currentProduct.id;
+  }).slice(0, 4);
+
+  if (related.length === 0) return;
+
+  container.innerHTML =
+    '<h2 class="section-title">You May Also Like</h2>' +
+    '<div class="pdp-related-grid">' +
+      related.map(function(p) {
+        var variant = getVariant(p, getColors(p)[0]);
+        var img = variant.image || p.image;
+        var price = variant.price || p.price;
+        return '<a href="/product.html?id=' + p.id + '" class="pdp-related-card">' +
+          '<div class="product-image"><img src="' + img + '" alt="' + p.name + '" loading="lazy" /></div>' +
+          '<div class="product-info" style="padding:12px 0;">' +
+            '<h3 class="product-name">' + p.name + '</h3>' +
+            '<span class="product-price">$' + (price / 100).toFixed(2) + '</span>' +
+          '</div>' +
+        '</a>';
+      }).join("") +
+    '</div>';
 }
 
 // ── Lightbox ──
@@ -214,6 +347,7 @@ function openLightbox(src) {
   lightboxImg.src = src;
   lightbox.classList.add("open");
   document.body.style.overflow = "hidden";
+  updateLightboxNav();
 }
 
 function closeLightbox() {
@@ -221,92 +355,165 @@ function closeLightbox() {
   document.body.style.overflow = "";
 }
 
+function updateLightboxNav() {
+  if (lightboxImages.length <= 1) {
+    lightboxPrev.style.display = "none";
+    lightboxNext.style.display = "none";
+  } else {
+    lightboxPrev.style.display = "flex";
+    lightboxNext.style.display = "flex";
+  }
+}
+
 lightboxClose.addEventListener("click", closeLightbox);
-lightbox.addEventListener("click", (e) => {
+lightbox.addEventListener("click", function(e) {
   if (e.target === lightbox) closeLightbox();
 });
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && lightbox.classList.contains("open")) {
-    closeLightbox();
+
+lightboxPrev.addEventListener("click", function(e) {
+  e.stopPropagation();
+  lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+  lightboxImg.src = lightboxImages[lightboxIndex];
+});
+
+lightboxNext.addEventListener("click", function(e) {
+  e.stopPropagation();
+  lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+  lightboxImg.src = lightboxImages[lightboxIndex];
+});
+
+document.addEventListener("keydown", function(e) {
+  if (!lightbox.classList.contains("open")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") {
+    lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+    lightboxImg.src = lightboxImages[lightboxIndex];
+  }
+  if (e.key === "ArrowRight") {
+    lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+    lightboxImg.src = lightboxImages[lightboxIndex];
   }
 });
 
-// ── Cart Functions (shared logic) ──
+// ── Cart Functions ──
 function cartKey(productId, size, color) {
-  return `${productId}-${size}-${color}`;
+  return productId + "-" + size + "-" + color;
 }
 
 function addToCart(productId, size, color) {
-  const product = products.find((p) => p.id === productId);
+  var product = products.find(function(p) { return p.id === productId; });
   if (!product) return;
 
-  const variant = getVariant(product, color);
-  const key = cartKey(productId, size, color);
-  const existing = cart.find((item) => item.key === key);
+  var variant = getVariant(product, color);
+  var key = cartKey(productId, size, color);
+  var existing = cart.find(function(item) { return item.key === key; });
 
   if (existing) {
     existing.quantity++;
   } else {
     cart.push({
-      ...product,
-      key,
-      size,
-      color,
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      key: key,
+      size: size,
+      color: color,
       price: variant.price || product.price,
       image: variant.image || product.image,
       quantity: 1,
+      tapstitchProductId: product.tapstitchProductId,
+      productType: product.productType,
+      printMethod: product.printMethod,
     });
   }
 
   saveCart();
   updateCart();
   openCart();
+  showToast(product.name + " added to cart");
 
   if (window.HoodooAnalytics) HoodooAnalytics.track("add_to_cart");
 }
 
-function removeFromCart(key) {
-  cart = cart.filter((item) => item.key !== key);
+function updateItemQty(key, delta) {
+  var item = cart.find(function(i) { return i.key === key; });
+  if (!item) return;
+  item.quantity += delta;
+  if (item.quantity <= 0) {
+    cart = cart.filter(function(i) { return i.key !== key; });
+  }
   saveCart();
   updateCart();
 }
 
+function removeFromCart(key) {
+  cart = cart.filter(function(item) { return item.key !== key; });
+  saveCart();
+  updateCart();
+}
+
+function updateShippingBar() {
+  if (!cartShippingBar) return;
+  if (cart.length === 0) { cartShippingBar.style.display = "none"; return; }
+  var total = cart.reduce(function(s, i) { return s + i.price * i.quantity; }, 0);
+  cartShippingBar.style.display = "block";
+  if (total >= FREE_SHIPPING_THRESHOLD) {
+    shippingBarText.textContent = "You've unlocked free shipping!";
+    shippingBarFill.style.width = "100%";
+  } else {
+    var rem = ((FREE_SHIPPING_THRESHOLD - total) / 100).toFixed(2);
+    shippingBarText.textContent = "$" + rem + " away from free shipping";
+    shippingBarFill.style.width = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100) + "%";
+  }
+}
+
 function updateCart() {
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  cartCount.textContent = totalItems;
+  var totalItems = cart.reduce(function(sum, item) { return sum + item.quantity; }, 0);
+
+  [cartCount, cartCountMobile].forEach(function(badge) {
+    if (!badge) return;
+    badge.textContent = totalItems;
+    if (totalItems > 0) { badge.classList.add("visible"); }
+    else { badge.classList.remove("visible"); }
+  });
 
   if (cart.length === 0) {
     cartItemsEl.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
     cartFooter.style.display = "none";
+    updateShippingBar();
     return;
   }
 
   cartFooter.style.display = "block";
 
-  cartItemsEl.innerHTML = cart
-    .map(
-      (item) => `
-    <div class="cart-item">
-      <div class="cart-item-image">
-        <img src="${item.image}" alt="${item.name}" />
-      </div>
-      <div class="cart-item-details">
-        <div class="cart-item-name">${item.name} ${item.quantity > 1 ? `x${item.quantity}` : ""}</div>
-        <div class="cart-item-variant">${item.color} / ${item.size}</div>
-        <div class="cart-item-price">$${((item.price * item.quantity) / 100).toFixed(2)}</div>
-        <button class="cart-item-remove" data-key="${item.key}">Remove</button>
-      </div>
-    </div>
-  `
-    )
-    .join("");
+  cartItemsEl.innerHTML = cart.map(function(item) {
+    return '<div class="cart-item">' +
+      '<div class="cart-item-image"><img src="' + item.image + '" alt="' + item.name + '" /></div>' +
+      '<div class="cart-item-details">' +
+        '<div class="cart-item-name">' + item.name + '</div>' +
+        '<div class="cart-item-variant">' + item.color + ' / ' + item.size + '</div>' +
+        '<div class="cart-item-qty">' +
+          '<button class="cart-qty-btn" data-key="' + item.key + '" data-delta="-1">&minus;</button>' +
+          '<span class="cart-qty-num">' + item.quantity + '</span>' +
+          '<button class="cart-qty-btn" data-key="' + item.key + '" data-delta="1">+</button>' +
+        '</div>' +
+        '<div class="cart-item-price">$' + ((item.price * item.quantity) / 100).toFixed(2) + '</div>' +
+        '<button class="cart-item-remove" data-key="' + item.key + '">Remove</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
 
-  cartItemsEl.querySelectorAll(".cart-item-remove").forEach((btn) => {
-    btn.addEventListener("click", () => removeFromCart(btn.dataset.key));
+  cartItemsEl.querySelectorAll(".cart-qty-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() { updateItemQty(btn.dataset.key, Number(btn.dataset.delta)); });
   });
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  cartTotalEl.textContent = `$${(total / 100).toFixed(2)}`;
+  cartItemsEl.querySelectorAll(".cart-item-remove").forEach(function(btn) {
+    btn.addEventListener("click", function() { removeFromCart(btn.dataset.key); });
+  });
+
+  var total = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
+  cartTotalEl.textContent = "$" + (total / 100).toFixed(2);
+  updateShippingBar();
 }
 
 // ── Cart Drawer Toggle ──
@@ -321,39 +528,39 @@ function closeCart() {
 }
 
 cartBtn.addEventListener("click", openCart);
+if (cartBtnMobile) cartBtnMobile.addEventListener("click", openCart);
 cartClose.addEventListener("click", closeCart);
 cartOverlay.addEventListener("click", closeCart);
 
 // ── Checkout ──
-checkoutBtn.addEventListener("click", async () => {
+checkoutBtn.addEventListener("click", async function() {
   if (cart.length === 0) return;
-
   if (window.HoodooAnalytics) HoodooAnalytics.track("checkout_start");
 
   checkoutBtn.disabled = true;
   checkoutBtn.textContent = "Processing...";
 
-  const items = cart.map((item) => ({
-    name: item.name,
-    description: item.description,
-    price: item.price,
-    quantity: item.quantity,
-    size: item.size,
-    color: item.color,
-    tapstitchProductId: item.tapstitchProductId,
-    productType: item.productType,
-    printMethod: item.printMethod,
-  }));
+  var items = cart.map(function(item) {
+    return {
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      quantity: item.quantity,
+      size: item.size,
+      color: item.color,
+      tapstitchProductId: item.tapstitchProductId,
+      productType: item.productType,
+      printMethod: item.printMethod,
+    };
+  });
 
   try {
-    const res = await fetch("/create-checkout-session", {
+    var res = await fetch("/create-checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items: items }),
     });
-
-    const data = await res.json();
-
+    var data = await res.json();
     if (data.url) {
       cart = [];
       saveCart();
@@ -373,7 +580,7 @@ checkoutBtn.addEventListener("click", async () => {
 // ── Init ──
 async function init() {
   try {
-    const res = await fetch("/api/products");
+    var res = await fetch("/api/products");
     products = await res.json();
   } catch (err) {
     console.error("Failed to load products:", err);
@@ -381,7 +588,6 @@ async function init() {
   renderProductDetail();
   updateCart();
 
-  // Track product view
   if (window.HoodooAnalytics && getProductId()) {
     HoodooAnalytics.track("product_view");
   }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Product &mdash; HOODOO</title>
+  <meta name="description" content="Shop premium quality essentials at HOODOO." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -12,8 +13,12 @@
 </head>
 <body>
 
-  <!-- Brand Banner -->
-  <div class="shipping-banner">HOODOO</div>
+  <!-- Announcement Bar -->
+  <div class="announcement-bar" id="announcement-bar">
+    <span class="announcement-msg active">Free Shipping on Orders Over $100</span>
+    <span class="announcement-msg">New Collection &mdash; Shop Now</span>
+    <span class="announcement-msg">Premium Quality. Minimal Design.</span>
+  </div>
 
   <!-- Navigation -->
   <nav class="nav">
@@ -33,11 +38,21 @@
         <li><a href="/#products">Shop</a></li>
         <li><a href="/#about">About</a></li>
         <li>
-          <button class="cart-btn" id="cart-btn">
-            Cart (<span id="cart-count">0</span>)
+          <button class="cart-btn" id="cart-btn" aria-label="Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            <span class="cart-badge" id="cart-count">0</span>
           </button>
         </li>
       </ul>
+      <div class="nav-actions">
+        <button class="cart-btn" id="cart-btn-mobile" aria-label="Cart">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="cart-badge" id="cart-count-mobile">0</span>
+        </button>
+        <a href="/" class="hamburger" aria-label="Home" style="text-decoration:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -49,7 +64,13 @@
   <!-- Lightbox -->
   <div class="lightbox-overlay" id="lightbox">
     <button class="lightbox-close" id="lightbox-close">&times;</button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
     <img class="lightbox-img" id="lightbox-img" src="" alt="Product image" />
+    <button class="lightbox-nav lightbox-next" id="lightbox-next">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </div>
 
   <!-- Cart Drawer -->
@@ -58,6 +79,10 @@
     <div class="cart-header">
       <h3>Your Cart</h3>
       <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-shipping-bar" id="cart-shipping-bar" style="display:none;">
+      <div class="shipping-bar-text" id="shipping-bar-text"></div>
+      <div class="shipping-bar-track"><div class="shipping-bar-fill" id="shipping-bar-fill"></div></div>
     </div>
     <div class="cart-items" id="cart-items">
       <p class="cart-empty">Your cart is empty.</p>
@@ -70,9 +95,46 @@
     </div>
   </aside>
 
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
   <!-- Footer -->
-  <footer class="footer">
-    <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+  <footer class="footer-rich">
+    <div class="footer-inner">
+      <div class="footer-col footer-brand">
+        <span class="hoodoo-mark footer-logo">
+          <span class="hd-pre">H</span>
+          <span class="hd-vesica" aria-hidden="true">
+            <span class="hd-ring hd-l"></span>
+            <span class="hd-ring hd-r"></span>
+            <span class="hd-lens"></span>
+          </span>
+          <span class="hd-post">Doo</span>
+        </span>
+        <p>Timeless essentials for the modern wardrobe. Quality fabrics, minimal design, built to last.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <a href="/#products">All Products</a>
+        <a href="/#products">New Arrivals</a>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <a href="/#about">About Us</a>
+        <a href="mailto:support@hooodooclothing.com">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <div class="footer-social">
+          <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></a>
+        </div>
+        <p class="footer-email">hello@hooodooclothing.com</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+    </div>
   </footer>
 
   <script src="analytics.js"></script>

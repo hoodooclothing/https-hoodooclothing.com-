@@ -11,6 +11,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Announcement Bar -->
+  <div class="announcement-bar">
+    <span class="announcement-msg active">Free Shipping on Orders Over $100</span>
+  </div>
+
   <nav class="nav">
     <div class="nav-inner">
       <a href="/" class="logo">
@@ -28,14 +33,36 @@
   </nav>
 
   <main class="status-page">
-    <div class="status-icon">&#10003;</div>
+    <div class="status-icon-animated success">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" class="status-checkmark"/>
+      </svg>
+    </div>
     <h1>Order Confirmed</h1>
-    <p>Thank you for your purchase. Your order is being processed and you'll receive a confirmation email shortly.</p>
+    <p>Thank you for your purchase! Your order is being processed and you'll receive a confirmation email shortly.</p>
+
+    <div class="status-steps">
+      <div class="status-step">
+        <span class="status-step-num">1</span>
+        <span>Order received &mdash; we're preparing your items</span>
+      </div>
+      <div class="status-step">
+        <span class="status-step-num">2</span>
+        <span>You'll receive an email with tracking information</span>
+      </div>
+      <div class="status-step">
+        <span class="status-step-num">3</span>
+        <span>Your order will be delivered within 5&ndash;10 business days</span>
+      </div>
+    </div>
+
     <a href="/" class="btn btn-primary">Continue Shopping</a>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+  <footer class="footer-rich" style="margin-top:auto;">
+    <div class="footer-bottom">
+      <p>&copy; 2026 Hoodoo Clothing. All rights reserved.</p>
+    </div>
   </footer>
 
   <script src="analytics.js"></script>
@@ -43,6 +70,8 @@
     if (window.HoodooAnalytics) {
       HoodooAnalytics.track("purchase_complete");
     }
+    // Clear cart after successful purchase
+    localStorage.removeItem("hoodoo_cart");
   </script>
 </body>
 </html>

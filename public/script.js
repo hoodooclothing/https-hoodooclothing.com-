@@ -801,3 +801,50 @@ async function init() {
   updateCart();
 }
 init();
+
+// ══════════════════════════════════════
+// v4.0 — Premium Interactions
+// ══════════════════════════════════════
+
+// Nav: transparent → solid on scroll
+(function() {
+  var nav = document.querySelector('.nav');
+  if (!nav) return;
+  function onScroll() {
+    if (window.scrollY > 60) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+// Hero word reveal (clip + translate)
+(function() {
+  var words = document.querySelectorAll('.hero-word-inner');
+  if (!words.length) return;
+  words.forEach(function(word, i) {
+    setTimeout(function() {
+      word.classList.add('in-view');
+    }, 250 + i * 200);
+  });
+})();
+
+// Hero glow: smooth mouse parallax
+(function() {
+  var glow = document.querySelector('.hero-glow');
+  if (!glow || window.innerWidth < 768) return;
+  var tx = 0, ty = 0, cx = 0, cy = 0;
+  document.addEventListener('mousemove', function(e) {
+    tx = (e.clientX / window.innerWidth - 0.5) * 40;
+    ty = (e.clientY / window.innerHeight - 0.5) * 40;
+  }, { passive: true });
+  (function loop() {
+    cx += (tx - cx) * 0.04;
+    cy += (ty - cy) * 0.04;
+    glow.style.transform = 'translateY(-50%) translate(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px)';
+    requestAnimationFrame(loop);
+  })();
+})();

@@ -2955,3 +2955,119 @@ button {
     width: 24px;
   }
 }
+
+/* ══════════════════════════════════════
+   HERO v3.1 — Bolder + Grain + Marquee
+   ══════════════════════════════════════ */
+
+/* Grain texture on hero background */
+.hero-bg-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.05'/%3E%3C/svg%3E");
+}
+
+/* Gradient orb glow */
+.hero-orb {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(233,69,96,0.14) 0%, rgba(139,92,246,0.07) 35%, transparent 65%);
+  filter: blur(80px);
+  z-index: 0;
+}
+
+/* Increase hero element visibility */
+.hero-circle-1 { border-color: rgba(233,69,96,0.18); }
+.hero-circle-2 { border-color: rgba(139,92,246,0.15); }
+.hero-circle-3 { background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%); }
+.hero-slash-1 { opacity: 0.25; height: 3px; }
+.hero-slash-2 { opacity: 0.2; height: 3px; }
+.hero-block-1 { border-color: rgba(233,69,96,0.15); }
+.hero-block-2 { border-color: rgba(139,92,246,0.15); background: rgba(139,92,246,0.06); }
+.hero-dots { opacity: 0.7; }
+.hero-tag { opacity: 0.35; }
+.hero-badge-label { opacity: 0.25; }
+.hero-watermark { -webkit-text-stroke: 1.5px rgba(233,69,96,0.05); }
+.hero-drip-1 { opacity: 0.2; width: 3px; }
+.hero-drip-2 { opacity: 0.15; width: 3px; }
+
+/* Animated gradient on hero title */
+.hero-title-gradient {
+  background: linear-gradient(135deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Hero eyebrow line glow */
+.hero-line {
+  height: 2px;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* ── Marquee Strip ── */
+.marquee-strip {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  padding: 14px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  animation: marquee 25s linear infinite;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.9);
+}
+
+.marquee-dot {
+  font-size: 0.3rem;
+  opacity: 0.4;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .hero-orb {
+    width: 400px;
+    height: 400px;
+    filter: blur(60px);
+  }
+
+  .marquee-track {
+    gap: 18px;
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-orb {
+    width: 300px;
+    height: 300px;
+    filter: blur(40px);
+  }
+}
